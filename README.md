@@ -2,7 +2,7 @@
 
 WorkBuddy 每日自动值守：签到、猫猫旅行、积分余额、成长计划、活动提醒，一条播报推送到企业微信群 + 个人微信。
 
-当前版本见 [VERSION](VERSION)（1.2.8）。
+当前版本见 [VERSION](VERSION)（1.2.9）。参加 WorkBuddy「1024 造物挑战」程序员节应用创作大赛。
 
 ## 运行形态
 
@@ -91,4 +91,5 @@ ssh ubuntu@<server> sudo bash /opt/buddy-keeper/scripts/setup_cron.sh
 | [运维手册](docs/OPERATIONS.md) | 日常检查命令清单 |
 | [域名与 HTTPS 上线手册](docs/DOMAIN-SETUP.md) | 可选：给看板绑定自定义域名 |
 | [灵感社区投稿稿](docs/INSPIRATION-SUBMISSION.md) | 案例投稿材料 |
+| [1024 参赛征文](docs/ESSAY-1024.md) | 功能亮点、适用场景与实际价值 |
 | [变更记录](CHANGELOG.md) | 版本历史 |

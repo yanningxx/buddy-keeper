@@ -254,4 +254,11 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    HTTPServer(("0.0.0.0", 80), Handler).serve_forever()
+    # 监听地址与端口可用环境变量覆盖，默认保持历史行为（0.0.0.0:80）。
+    # 需要由 Nginx 接管 80/443 时，在 systemd unit 里设：
+    #   Environment=BK_ECHO_HOST=127.0.0.1
+    #   Environment=BK_ECHO_PORT=8080
+    # 这样本文件无需改动，deploy.py 重新上传也不会把端口写回 80。
+    _host = os.environ.get("BK_ECHO_HOST", "0.0.0.0")
+    _port = int(os.environ.get("BK_ECHO_PORT", "80"))
+    HTTPServer((_host, _port), Handler).serve_forever()

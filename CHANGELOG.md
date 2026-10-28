@@ -2,6 +2,20 @@
 
 版本号遵循语义化：主版本.次版本.修订号。
 
+## 1.3.0 — 2026-10-28
+
+### 变更（产品更名与说明重写）
+
+- **产品名**：`BuddyKeeper` → **WorkBuddy 每日签到全勤值守**。命名沿用「产品名 + 每日 + 动作 + 收益」结构，「全勤」指向真正怕断的连续天数与全勤奖励。
+- **商店说明**按三段结构重写：① 值守什么（签到与全勤为主，串今日礼包、猫猫旅行、积分余额、成长计划）② 用户会怎么说（「帮我签到」「我是不是要断签了」「全勤还差多少」等 7 条口语 + 5 个关键词）③ 怎么实现（服务器每天 09:00 无人值守、不依赖本机、不碰界面、无需扫码、幂等、单飞、分类重试不静默、可查可补跑）。
+- **同步范围**：`README.md`（标题与简介）、`site/index.html`（标题 / 主标 / 副标 / 版本徽章 / 页脚）、`app/index.html`（页面标题与访问令牌提示）、`skill/SKILL.md`（`display_name` / `description` / `description_zh` / `description_en`）、`docs/DESIGN.md`、`docs/API.md`、`docs/USAGE.md`、`docs/ESSAY-1024.md`、`docs/DOMAIN-SETUP.md`、`docs/INSPIRATION-SUBMISSION.md`、`docs/SHARE-XHS.md`、`docs/SKILLHUB-LISTING.md`。
+- **不改的部分**：仓库名、目录名与部署路径仍为 `buddy-keeper` / `/opt/buddy-keeper`。cron 行、`scripts/deploy.py`、systemd unit 的 `WorkingDirectory` 都依赖它，改名会打断定时任务，故产品名与工程标识分离。
+
+### 文档
+
+- 新增 `docs/SKILLHUB-LISTING.md`：技能商店上架文案（名称拆解、卡片说明、说明三段对照、详情页分段版、竞品对比表、触发词表、上架材料清单）。
+- 新增 `docs/SHARE-XHS.md`：1024 参赛的小红书笔记稿（标题备选、正文、标签、配图顺序、回填步骤、自查清单）。
+
 ## 1.2.9 — 2026-10-28
 
 ### 新增

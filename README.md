@@ -82,6 +82,13 @@ ssh ubuntu@<server> sudo bash /opt/buddy-keeper/scripts/setup_cron.sh
 
 ## 文档
 
-- 架构与接口：[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- 运维手册：[docs/OPERATIONS.md](docs/OPERATIONS.md)
-- 变更记录：[CHANGELOG.md](CHANGELOG.md)
+| 文档 | 内容 |
+|---|---|
+| [设计文档](docs/DESIGN.md) | 架构分层、模块划分、数据模型、关键流程、异常处理、扩展性 |
+| [接口文档](docs/API.md) | 6 个接口的用途、参数、错误码与调用示例 |
+| [使用说明](docs/USAGE.md) | 环境准备、安装配置、典型流程、常见问题 |
+| [架构速览](docs/ARCHITECTURE.md) | 鉴权体系与外部接口契约速查 |
+| [运维手册](docs/OPERATIONS.md) | 日常检查命令清单 |
+| [域名与 HTTPS 上线手册](docs/DOMAIN-SETUP.md) | 可选：给看板绑定自定义域名 |
+| [灵感社区投稿稿](docs/INSPIRATION-SUBMISSION.md) | 案例投稿材料 |
+| [变更记录](CHANGELOG.md) | 版本历史 |

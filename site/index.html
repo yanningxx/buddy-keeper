@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BuddyKeeper v1.2.8 · 发布页</title>
+<title>BuddyKeeper v1.2.9 · 发布页</title>
 <style>
   :root {
     --bg: #f7f8fa; --card: #ffffff; --line: #e5e7eb;
@@ -25,6 +25,7 @@
     background: #eef2ff; color: #3730a3; border: 1px solid #e0e7ff;
   }
   .badge.ok { background: #ecfdf5; color: #047857; border-color: #d1fae5; }
+  .badge.contest { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
   .card {
     background: var(--card); border: 1px solid var(--line); border-radius: 12px;
     padding: 20px 22px; margin-bottom: 16px;
@@ -60,29 +61,43 @@
     <h1>BuddyKeeper · 每日自动值守</h1>
     <div class="sub">WorkBuddy 签到 / 猫猫旅行 / 积分余额 / 成长计划，每天 09:00 无人值守跑一次，结果推送到企业微信。</div>
     <div class="badges">
-      <span class="badge ok">v1.2.8</span>
+      <span class="badge ok">v1.2.9</span>
+      <span class="badge contest">WorkBuddy 1024 造物挑战 · 参赛作品</span>
       <span class="badge">cron 每天 09:00</span>
-      <span class="badge">Python 3 · 零第三方依赖（除 paramiko 部署用）</span>
+      <span class="badge">Python 3 · 零第三方运行时依赖</span>
     </div>
   </header>
 
   <div class="note">
-    本页只做发布说明，<strong>不承载任何账号数据</strong>。真实运行状态在本人的值守服务器上，需访问令牌才能查看。
+    本页只做发布说明，<strong>不承载任何账号数据</strong>。真实运行状态在值守服务器上，需访问令牌才能查看。
   </div>
 
   <div class="card">
-    <h2><span class="n">1</span>本次发布内容</h2>
+    <h2><span class="n">1</span>本次发布内容（1.2.9）</h2>
     <ul>
-      <li>修复「活动：⚠️ 有积分可领（立即领取）」的<strong>假阳性</strong>：改按真实可领积分判定，不再拿服务端静态按钮文案当依据。</li>
-      <li><code>claim_button_text</code> 降级为纯文案字段，明确注释「不代表可领」。</li>
-      <li>新增 <code>claimable_credit()</code>：签到看 <code>active &amp;&amp; !today_checked_in</code>，任务看进度达成且 <code>accept_status != claimed</code>。</li>
-      <li>部署脚本<strong>移除全部内置凭据</strong>，改为环境变量或本地未入库文件提供。</li>
+      <li>补齐<strong>三份工程文档</strong>：设计文档、接口文档、使用说明，与原有架构速览、运维手册形成完整层次。</li>
+      <li>设计文档写明<strong>模块划分与数据模型</strong>，包括外部接口契约里最容易踩的坑（<code>claim_button_text</code> 是静态文案，不能当可领判据）。</li>
+      <li>接口文档逐个说明 6 个接口的参数、错误码与调用示例，并单列一节标注 <code>/status</code> 与 <code>/run</code> 免鉴权的风险。</li>
+      <li>新增可选路径：<code>绑定域名.cmd</code> 一键把看板迁到自有域名 + HTTPS，任一步失败自动回滚。不买域名也能正常使用。</li>
     </ul>
   </div>
 
   <div class="card">
-    <h2><span class="n">2</span>这一版之前修过的关键问题</h2>
+    <h2><span class="n">2</span>文档入口</h2>
+    <table>
+      <tr><th>设计文档</th><td><a href="https://github.com/yanningxx/buddy-keeper/blob/main/docs/DESIGN.md" target="_blank" rel="noopener">架构分层 / 模块划分 / 数据模型 / 关键流程 / 异常处理 / 扩展性</a></td></tr>
+      <tr><th>接口文档</th><td><a href="https://github.com/yanningxx/buddy-keeper/blob/main/docs/API.md" target="_blank" rel="noopener">6 个接口的用途、参数、错误码与 curl 示例</a></td></tr>
+      <tr><th>使用说明</th><td><a href="https://github.com/yanningxx/buddy-keeper/blob/main/docs/USAGE.md" target="_blank" rel="noopener">环境准备 / 安装配置 / 典型流程 / 10 条常见问题</a></td></tr>
+      <tr><th>架构速览</th><td><a href="https://github.com/yanningxx/buddy-keeper/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">鉴权体系与外部接口契约速查</a></td></tr>
+      <tr><th>运维手册</th><td><a href="https://github.com/yanningxx/buddy-keeper/blob/main/docs/OPERATIONS.md" target="_blank" rel="noopener">日常检查命令清单</a></td></tr>
+      <tr><th>域名手册</th><td><a href="https://github.com/yanningxx/buddy-keeper/blob/main/docs/DOMAIN-SETUP.md" target="_blank" rel="noopener">可选：绑定自定义域名与 HTTPS</a></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">3</span>这一版之前修过的关键问题</h2>
     <ul>
+      <li>「活动：⚠️ 有积分可领（立即领取）」<strong>假阳性</strong>：改按真实可领积分判定，不再拿服务端静态按钮文案当依据。</li>
       <li>cron 每天 09:00 不执行：根因是日志文件被 root 创建成 644，ubuntu 的 <code>&gt;&gt;</code> 重定向在启动 Python 前就失败。现改为可写性探测 + 降级日志文件。</li>
       <li>单飞锁：看板「立即执行一次」与定时任务并发时只跑一个，避免重复领取。</li>
       <li>旅行奖励：到达后先领取再派遣，派出去不会丢积分。</li>
@@ -90,18 +105,18 @@
   </div>
 
   <div class="card">
-    <h2><span class="n">3</span>版本信息</h2>
+    <h2><span class="n">4</span>版本信息</h2>
     <table>
-      <tr><th>版本</th><td>1.2.8</td></tr>
+      <tr><th>版本</th><td>1.2.9</td></tr>
       <tr><th>发布日期</th><td>2026-10-28</td></tr>
       <tr><th>源码仓库</th><td><a href="https://github.com/yanningxx/buddy-keeper" target="_blank" rel="noopener">github.com/yanningxx/buddy-keeper</a></td></tr>
       <tr><th>运行环境</th><td>Linux + cron + systemd，Python 3</td></tr>
-      <tr><th>数据库</th><td>CloudBase PostgreSQL（发布记录 / 归档数据）</td></tr>
+      <tr><th>数据存储</th><td>本地 JSON 状态文件 + 日志；无数据库依赖</td></tr>
     </table>
   </div>
 
   <div class="card">
-    <h2><span class="n">4</span>安全说明</h2>
+    <h2><span class="n">5</span>安全说明</h2>
     <ul>
       <li>仓库内<strong>不含任何凭据</strong>；服务器地址、账号、密码通过环境变量或本地 <code>config/deploy.local.json</code>（已 gitignore）提供。</li>
       <li>运行期密钥文件、日志、会话 cookie 全部排除在版本库之外。</li>
@@ -109,7 +124,7 @@
     </ul>
   </div>
 
-  <footer>BuddyKeeper v1.2.8 · 2026-10-28</footer>
+  <footer>BuddyKeeper v1.2.9 · 2026-10-28 · 参加 WorkBuddy 1024 造物挑战</footer>
 </div>
 </body>
 </html>

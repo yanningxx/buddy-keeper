@@ -1,18 +1,19 @@
 ---
 name: buddy-keeper
 version: "1.2.9"
-display_name: BuddyKeeper 值守助手
-display_name_en: BuddyKeeper Daily Watch
-description: 查看与触发 WorkBuddy 每日自动值守（签到、猫猫旅行、积分余额、成长计划），并诊断定时任务是否正常执行。
-description_zh: 查看与触发 WorkBuddy 每日自动值守（签到、猫猫旅行、积分余额、成长计划），并诊断定时任务是否正常执行。
-description_en: Inspect and trigger the WorkBuddy daily watch (check-in, buddy travel, credits, growth plan) and diagnose cron health.
+display_name: "WorkBuddy 每日自动值守"
+display_name_en: "WorkBuddy Daily Auto Watch"
+description: "值守 WorkBuddy 每日积分与成长进度（Buddy加油站签到、猫猫旅行派遣、积分余额、成长计划）。当用户说「帮我签到」「今天签到了吗」「猫猫派出去没有」「积分还剩多少」「设置每天自动签到值守」，或提到 WorkBuddy 积分不够、断签、连续签到天数、全勤奖励时使用。在服务器上每天 09:00 无人值守执行：不依赖本机与客户端、不碰界面、无需扫码；签到与领取幂等不重复，并发只跑一份，失败分类重试且绝不静默，结果推送到企业微信，并可在看板随时查看与手动补跑。"
+description_zh: "值守 WorkBuddy 每日积分与成长进度（Buddy加油站签到、猫猫旅行派遣、积分余额、成长计划）。触发词：帮我签到、今天签到了吗、猫猫派出去没有、积分还剩多少、每天自动签到值守、断签、连续签到天数、全勤奖励。服务器端每天 09:00 无人值守执行，不依赖本机、不碰界面、无需扫码，幂等不重复，失败不静默，结果推送企业微信并可在看板查看与手动补跑。"
+description_en: "Watches your daily WorkBuddy credits and growth progress (Buddy Gas Station check-in, buddy travel dispatch, credit balance, growth plan). Use when the user says \"help me check in\", \"did I check in today\", \"is the buddy traveling\", \"how many credits left\", or \"set up a daily auto check-in\", or mentions missed check-ins, streak days, or full-attendance rewards. Runs unattended on a server at 09:00 daily: no local client, no UI tapping, no QR scan; idempotent claims, single-flight lock, classified retries, never fails silently, pushes results to WeCom, and supports dashboard review plus manual re-run."
 author: yanningxx
 category: productivity
 ---
 
-# BuddyKeeper 值守助手
+# WorkBuddy 每日自动值守（BuddyKeeper）
 
-把 WorkBuddy 的每日签到 / 猫猫旅行 / 积分播报这套无人值守流程，做成可问、可查、可诊断的技能。
+把 WorkBuddy 的每日签到 / 猫猫旅行 / 积分播报这套无人值守流程，做成**服务器上每天 09:00 自己跑、可问、可查、可诊断、可补跑**的技能。
+与「本机签到类」技能的区别只有一条：它不依赖你的电脑开着，也不依赖你说话。
 
 ## 什么时候用
 

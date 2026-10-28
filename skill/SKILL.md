@@ -83,6 +83,8 @@ cd /opt/buddy-keeper && /usr/bin/python3 lib/buddy_station.py --json --no-toast 
 | 「怎么装」「怎么配」「XX 报错怎么办」 | `docs/USAGE.md`（使用说明） |
 | 「鉴权怎么走的」「余额为什么要 UA」 | `docs/ARCHITECTURE.md`（架构速览） |
 | 「给看板配个域名 / 上 HTTPS」 | `docs/DOMAIN-SETUP.md` |
+| 「这作品有什么亮点 / 怎么向别人介绍」 | `docs/ESSAY-1024.md`（1024 造物挑战参赛征文） |
+| 「怎么投稿到灵感社区 / 官方案例」 | `docs/INSPIRATION-SUBMISSION.md`（策展制，需走官方通道） |
 
 接口速查：`GET /status`（看状态，免鉴权）、`POST /run`（触发一次，免鉴权）、`POST /notify`（推送，需 token）、`GET /`（看板页面）。
 

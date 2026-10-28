@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BuddyKeeper v1.2.9 · 发布页</title>
+<title>WorkBuddy 每日签到全勤值守 v1.3.0 · 发布页</title>
 <style>
   :root {
     --bg: #f7f8fa; --card: #ffffff; --line: #e5e7eb;
@@ -58,10 +58,10 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>BuddyKeeper · 每日自动值守</h1>
-    <div class="sub">WorkBuddy 签到 / 猫猫旅行 / 积分余额 / 成长计划，每天 09:00 无人值守跑一次，结果推送到企业微信。</div>
+    <h1>WorkBuddy 每日签到全勤值守</h1>
+    <div class="sub">值守 WorkBuddy 每日签到与全勤（Buddy加油站签到、今日礼包、猫猫旅行派遣、积分余额、成长计划）。每天 09:00 在服务器无人值守执行，不依赖本机与客户端，结果推送到企业微信，看板可随时查状态并一键补跑。</div>
     <div class="badges">
-      <span class="badge ok">v1.2.9</span>
+      <span class="badge ok">v1.3.0</span>
       <span class="badge contest">WorkBuddy 1024 造物挑战 · 参赛作品</span>
       <span class="badge">cron 每天 09:00</span>
       <span class="badge">Python 3 · 零第三方运行时依赖</span>
@@ -73,8 +73,9 @@
   </div>
 
   <div class="card">
-    <h2><span class="n">1</span>本次发布内容（1.2.9）</h2>
+    <h2><span class="n">1</span>本次发布内容（1.3.0）</h2>
     <ul>
+      <li><strong>产品更名</strong>：BuddyKeeper → WorkBuddy 每日签到全勤值守，商店说明按「值守什么 / 用户会怎么说 / 怎么实现」三段重写，全站与文档同步。</li>
       <li>补齐<strong>三份工程文档</strong>：设计文档、接口文档、使用说明，与原有架构速览、运维手册形成完整层次。</li>
       <li>设计文档写明<strong>模块划分与数据模型</strong>，包括外部接口契约里最容易踩的坑（<code>claim_button_text</code> 是静态文案，不能当可领判据）。</li>
       <li>接口文档逐个说明 6 个接口的参数、错误码与调用示例，并单列一节标注 <code>/status</code> 与 <code>/run</code> 免鉴权的风险。</li>
@@ -108,7 +109,7 @@
   <div class="card">
     <h2><span class="n">4</span>版本信息</h2>
     <table>
-      <tr><th>版本</th><td>1.2.9</td></tr>
+      <tr><th>版本</th><td>1.3.0</td></tr>
       <tr><th>发布日期</th><td>2026-10-28</td></tr>
       <tr><th>源码仓库</th><td><a href="https://github.com/yanningxx/buddy-keeper" target="_blank" rel="noopener">github.com/yanningxx/buddy-keeper</a></td></tr>
       <tr><th>运行环境</th><td>Linux + cron + systemd，Python 3</td></tr>
@@ -125,7 +126,7 @@
     </ul>
   </div>
 
-  <footer>BuddyKeeper v1.2.9 · 2026-10-28 · 参加 WorkBuddy 1024 造物挑战</footer>
+  <footer>WorkBuddy 每日签到全勤值守 v1.3.0 · 2026-10-28 · 参加 WorkBuddy 1024 造物挑战</footer>
 </div>
 </body>
 </html>

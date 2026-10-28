@@ -15,6 +15,15 @@
 
 - 新增 `docs/SKILLHUB-LISTING.md`：技能商店上架文案（名称拆解、卡片说明、说明三段对照、详情页分段版、竞品对比表、触发词表、上架材料清单）。
 - 新增 `docs/SHARE-XHS.md`：1024 参赛的小红书笔记稿（标题备选、正文、标签、配图顺序、回填步骤、自查清单）。
+- 新增 `docs/OPEN-PLATFORM-RELEASE.md`：开放平台（全网技能池）上架手册。含两条通道的区别、个人认证材料与四条注意事项、真实上传路径、确认信息逐字段映射、市场分类 16 项与服务类目二级菜单、七条避坑、审核答辩口径、变现开通条件。
+- 修正一处认知错误：客户端内「上传技能」只是本机安装，**不存在**「客户端内提交到技能市场」的入口；上架全网技能池只有 `open.workbuddy.cn` 一条通道。
+
+### 技能上架包
+
+- 新增 `skill/market/`：技能市场版（只读范围），含 `SKILL.md` 与 `references/data-fields.md`、`references/troubleshooting.md`。字段口径表覆盖 `streak_days` 是累计而非连续、`reward_credit` 是预计而非到账、静态按钮文案不可作判据等四个易误判项。
+- 新增 `scripts/package_skill.py`：打包前自检开放平台八项必填、`name` 是否 kebab-case、`name` 与顶层目录名是否一致、`examples_zh` 条数、zip 内路径分隔符与体积上限；任一项不过直接退出，不产出包。
+- 新增 `scripts/make_skill_icon.py` 与 `assets/skill-icon-512.png`：以标准库直接写 PNG，生成 512×512、22 KB 的头像（深色圆角底 + 9:00 表盘 + 绿色对勾），不依赖 Pillow。
+- 市场版 `name` 定为 `yanning-buddy-keeper-watch`（平台 `name` 全局唯一，加作者前缀避撞名），`display_name` 取「WorkBuddy 签到全勤」15 字。
 
 ## 1.2.9 — 2026-10-28
 

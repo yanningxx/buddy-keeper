@@ -1,63 +1,98 @@
 ---
-name: buddy-keeper-watch
-version: "1.3.0"
-display_name: "WorkBuddy 每日签到全勤值守"
-display_name_en: "WorkBuddy Check-in & Streak Watch"
-description: "查询 WorkBuddy 每日签到与全勤状态（今日是否已签、连续天数、积分余额、成长计划进度、活动剩余天数、猫猫旅行状态）。当用户说「今天签到了吗」「连续签了几天」「全勤还差多少」「积分还剩多少」「猫猫到哪了」「昨天的播报怎么没来」时使用。只读查询：不修改账号状态、不代领任何奖励、不接触客户端界面、不索取任何凭据；同时可读取值守服务每天 09:00 生成的状态与日志，用来解读播报、定位漏跑原因，并在存在断签风险时给出提醒。"
-description_zh: "查询 WorkBuddy 每日签到与全勤状态（今日是否已签、连续天数、积分余额、成长计划进度、活动剩余天数、猫猫旅行状态）。触发词：今天签到了吗、连续签了几天、全勤还差多少、积分还剩多少、猫猫到哪了、播报怎么没来。只读查询，不修改账号状态、不代领奖励、不接触客户端界面、不索取凭据；可读取值守服务每天 09:00 生成的状态与日志，用于解读播报与定位漏跑，并在有断签风险时提醒。"
-description_en: "Check WorkBuddy daily check-in and streak status (checked in today, streak days, credit balance, growth plan progress, remaining activity days, buddy travel status). Use when the user asks \"did I check in today\", \"how many days in a row\", \"how far from full attendance\", \"how many credits left\", \"where is my buddy\", or \"why didn't today's report arrive\". Read-only: it never changes account state, never claims rewards, never touches the client UI, and never asks for credentials. It can also read the status and logs produced by the watch service at 09:00 daily to explain reports, diagnose missed runs, and warn about streak-break risk."
+name: yanning-buddy-keeper-watch
+version: 1.3.0
+display_name: WorkBuddy 签到全勤
+display_name_en: WorkBuddy Check-in Streak Watch
+description: 读取 WorkBuddy 每日签到与全勤状态，回答「今天签到了吗」「连续几天」「全勤还差多少」，并解释每天 09:00 那条播报。只读，不代签、不代领。
+description_zh: 查 WorkBuddy 每日签到与全勤状态（今日是否已签、连续天数、积分余额、成长计划进度、活动剩余天数、猫猫旅行），并解读每天 09:00 的播报、定位漏跑原因。只读查询：不代签、不代领、不接触客户端界面、不索取账号凭据。产出是一段结论 + 一张状态表 + 一句下一步建议。
+description_en: Reads WorkBuddy daily check-in and streak status (checked in today, streak, credits, growth plan, remaining days, buddy travel), explains the 09:00 report, and diagnoses missed runs. Read-only: never checks in, never claims rewards, never touches the client UI, never asks for credentials.
+examples_zh:
+  - 我今天签到了吗，连续签了几天
+  - 全勤还差多少，会不会断签
+  - 昨天的播报怎么没来
+examples_en:
+  - Did I check in today, and how many days in a row
+  - How far am I from full attendance, is my streak at risk
+  - Why didn't yesterday's report arrive
 author: yanningxx
-category: productivity
+category: 效率工具
 ---
 
-# WorkBuddy 每日签到全勤值守（查询与提醒版）
+# WorkBuddy 签到全勤查询
 
-帮你随时看清 WorkBuddy 的签到与全勤状态，并解释每天 09:00 那条播报到底在说什么。
-**这个版本只读**：不签到、不领奖、不派旅行、不改任何账号状态。
+一个只读的状态查询与诊断技能：把 WorkBuddy 的签到、全勤、积分、旅行状态读清楚，把每天 09:00 的那条播报解释清楚，把「播报没来」的原因定位清楚。
+
+**它不签到、不领奖、不派遣旅行、不改任何账号状态。** 一次都不做。
 
 ## 什么时候用
 
-- 「今天签到了吗」「连续签了几天」「全勤还差多少」
-- 「积分还剩多少」「成长计划还差什么」「活动还有几天」
-- 「猫猫到哪了」「待领的那笔是多少」
-- 「昨天的播报怎么没来」「为什么提示有积分可领却领不到」
-
-## 数据口径（答之前先对齐，避免误判）
-
-| 项 | 正确口径 |
+| 用户这么说 | 你该回答什么 |
 |---|---|
-| 今日签到 | 看 `today_checked_in` 布尔值。**不要**用按钮文案判断 |
-| 可领积分 | 签到：`active && !today_checked_in`；任务：进度达标 且 `accept_status != claimed` 且 `has_reward` |
-| 「立即领取」文案 | 服务端下发的静态 UI 文案，已签到时**依然**返回「立即领取」，不能当可领依据 |
-| 旅行「待领 N」 | `travel.reward_credit` 是预计奖励；只有 `state == "arrived"` 才算真可领 |
-| 全勤缺口 | 连续天数 + 活动剩余天数一起看，单看一个数会误判 |
+| 今天签到了吗 / 我签了吗 | 今日是否已签（布尔），已签则给连续天数，未签则给剩余可签时间和断签后果 |
+| 连续签了几天 / 全勤还差多少 | 连续天数 + 活动剩余天数一起报，缺一个就会误判 |
+| 积分还剩多少 / 成长计划还差什么 | 当前余额 + 下一档所需积分与差距 |
+| 猫猫到哪了 / 待领的那笔是多少 | 旅行状态与预计奖励，**状态未到达就不算可领** |
+| 昨天的播报怎么没来 | 按「排查播报没来」三步走，给出具体是卡在哪一环 |
+| 为什么提示有积分可领却领不到 | 十有八九是把静态按钮文案当成了可领依据，见下方口径表 |
+
+## 数据口径（答之前先对齐，这是本技能最值钱的部分）
+
+| 项 | 正确口径 | 常见误判 |
+|---|---|---|
+| 今日签到 | 看 `today_checked_in` 布尔值 | 用按钮文案判断 → 已签也说没签 |
+| 签到可领 | `active && !today_checked_in` | 只要有活动就算可领 |
+| 任务可领 | 进度达标 **且** `accept_status != claimed` **且** `has_reward` | 只看进度条 |
+| 「立即领取」文案 | 服务端下发的**静态** UI 文案，已签到时依然返回「立即领取」 | 把文案当状态 → 每天误报「有积分可领」 |
+| 旅行「待领 N」 | `travel.reward_credit` 是**预计**奖励，只有 `state == "arrived"` 才真可领 | 把预计当已到账 |
+| 全勤缺口 | 连续天数 **与** 活动剩余天数一起看 | 单看一个数 → 误判「稳了」或「没救了」 |
+
+字段级说明见 `@references/data-fields.md`，逐字段给了取值含义与边界条件。
 
 ## 只读查询怎么做
 
-需要两个环境变量，由使用者自己配置，技能不读取、不回显、不落盘：
+需要两个环境变量，由使用者自己配置。技能不读取、不回显、不落盘、不写进任何文件：
 
-- `BK_BASE`：值守服务的访问地址
+- `BK_BASE`：值守服务的访问地址（使用者自己部署）
 - `BK_TOKEN`：只读查询令牌
 
 ```bash
 curl -s "$BK_BASE/status?token=$BK_TOKEN" | head -c 2000
 ```
 
-返回 JSON 里的 `state` 与 `log_tail` 足够回答上面所有问题。**不要**在对话里打印 `BK_TOKEN` 的值。
+返回 JSON 里的 `state` 与 `log_tail` 足以回答上面所有问题。
+**不要在对话里打印 `BK_TOKEN` 的值**，也不要写进任何命令回显。
+
+如果两个变量都没配置，不要猜数字。直接告诉用户：「这个技能本身不产生数据，需要先有一份值守服务的状态快照。你要么把它接上（填 `BK_BASE` 和 `BK_TOKEN`），要么把状态 JSON 或播报截图贴给我，我按口径帮你读。」
+
+## 输出要求
+
+1. **结论先行**：第一句就说「今天已签 / 未签」「连续 N 天」「会不会断」。
+2. **再给依据**：用一张三到五行的表列出关键字段和取值，让用户能自己对上。
+3. **最后给一步动作**：只给一个最该做的动作（比如「还剩 4 小时，现在去签」），不要列五条建议。
+4. **不确定就说不确定**：读不到数据就说读不到，不要用「应该」「大概」填补空缺。
 
 ## 排查「播报没来」
 
 按顺序看三处，不要跳步：
 
-1. 状态文件时间戳：`state.date` 是不是今天；
-2. 日志尾部有没有当天 09:00 的执行记录；
-3. 若有降级日志（`cron.<uid>.log`），说明主日志当时不可写，任务被记录到了别处。
+1. **状态文件时间戳**：`state.date` 是不是今天。不是 → 今天的任务没跑完。
+2. **日志尾部**：有没有当天 09:00 的执行记录。有记录但报错 → 看错误分类（网络类会重试，业务类不重试）。
+3. **降级日志**：如果有 `cron.<uid>.log`，说明主日志当时不可写，任务被记到了别处，不是没跑。
 
-三条都空 → 大概率是定时任务没触发，属于服务端运维问题，不在本技能范围内。
+三条都空 → 大概率是定时任务没触发，属于服务端运维问题，超出本技能范围，直说。
+
+详细判定树见 `@references/troubleshooting.md`。
 
 ## 边界（重要）
 
-- **不做**：签到、领取奖励、派遣旅行、修改成长计划——一次都不做。
-- **不碰**：客户端界面、扫码、任何人机验证流程。
-- **不索取**：账号密码、cookie、长效令牌。只接受使用者已配置好的只读查询令牌。
-- **不承诺**：不保证连续签到不断，不承诺任何积分收益；本技能只负责"看清状态 + 提醒风险"。
+- **不做**：签到、领取奖励、派遣旅行、修改成长计划、代填任何表单。
+- **不碰**：客户端界面、扫码、人机验证流程、任何自动化点击。
+- **不索取**：账号密码、cookie、长效令牌、身份证、手机号。只接受使用者已经配置好的只读查询令牌。
+- **不承诺**：不保证连续签到不断，不承诺任何积分收益。本技能只负责「看清状态 + 提醒风险」。
+
+## 合规声明
+
+- 本技能不包含任何自动化代操作逻辑，不模拟登录，不绕过任何人机验证。
+- 本技能不接触用户的 WorkBuddy 账号凭据，只读取使用者自行部署服务的只读快照。
+- 本技能不生成、不存储、不外传任何个人数据；查询结果仅用于当次对话回答。
+- 若使用者未配置服务，本技能退化为「读用户贴过来的状态并解释口径」，不产生任何网络请求。

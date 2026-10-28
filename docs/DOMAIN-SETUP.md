@@ -129,7 +129,7 @@ _port = int(os.environ.get("BK_ECHO_PORT", "80"))
 
 ## 阶段 6 · 验收清单
 
-- [ ] 浏览器打开 `https://你的域名/`，看到 BuddyKeeper 发布页
+- [ ] 浏览器打开 `https://你的域名/`，看到 WorkBuddy 每日签到全勤值守 发布页
 - [ ] 地址栏有锁标志，访问 `http://` 会自动跳到 `https://`
 - [ ] `https://你的域名/status?token=xxx` 返回 JSON（后端反代通了）
 - [ ] `systemctl status wecom-echo` 显示 active

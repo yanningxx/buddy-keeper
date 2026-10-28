@@ -1,6 +1,6 @@
-# BuddyKeeper 使用说明
+# WorkBuddy 每日签到全勤值守 · 使用说明
 
-> 版本 1.2.9 ｜ 最后更新 2026-10-28
+> 版本 1.3.0 ｜ 最后更新 2026-10-28
 > 配套文档：[设计文档](DESIGN.md) · [接口文档](API.md) · [架构速览](ARCHITECTURE.md) · [运维手册](OPERATIONS.md)
 
 ## 1. 环境准备
@@ -146,7 +146,7 @@ tail -40 /opt/buddy-keeper/logs/cron.log
 
 ### Q3 播报里显示「⚠️ 有积分可领」但其实领不了
 
-v1.2.8 已修。如果还出现，确认版本：`cat /opt/buddy-keeper/VERSION` 应为 `1.2.9`（或 ≥1.2.8）。
+v1.2.8 已修。如果还出现，确认版本：`cat /opt/buddy-keeper/VERSION` 应为 `1.3.0`（或 ≥1.2.8）。
 
 根因是 `claim_button_text` 是服务端静态文案，已签到仍返回「立即领取」。现在只看 `claimable_credit()` 算出的数据事实。
 

@@ -5,7 +5,7 @@ display_name: WorkBuddy 签到全勤
 display_name_en: WorkBuddy Check-in Streak Watch
 description: 读取 WorkBuddy 每日签到与全勤状态，回答「今天签到了吗」「连续几天」「全勤还差多少」，并解释每天 09:00 那条播报。只读，不代签、不代领。
 description_zh: 查 WorkBuddy 每日签到与全勤状态（今日是否已签、连续天数、积分余额、成长计划进度、活动剩余天数、猫猫旅行），并解读每天 09:00 的播报、定位漏跑原因。只读查询：不代签、不代领、不接触客户端界面、不索取账号凭据。产出是一段结论 + 一张状态表 + 一句下一步建议。
-description_en: Reads WorkBuddy daily check-in and streak status (checked in today, streak, credits, growth plan, remaining days, buddy travel), explains the 09:00 report, and diagnoses missed runs. Read-only: never checks in, never claims rewards, never touches the client UI, never asks for credentials.
+description_en: Reads WorkBuddy daily check-in and streak status (checked in today, streak, credits, growth plan, remaining days, buddy travel), explains the 09:00 report, and diagnoses missed runs. Read-only — it never checks in, never claims rewards, never touches the client UI, and never asks for credentials.
 examples_zh:
   - 我今天签到了吗，连续签了几天
   - 全勤还差多少，会不会断签

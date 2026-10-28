@@ -15,6 +15,8 @@
     6. examples_zh 建议 3 条（决定详情页「试试这样问我」）
     7. zip 内路径统一用 /，剔除 __pycache__ / .pyc / .log
     8. 总体积 <= 3MB
+    9. frontmatter 每个值都不含「ASCII 冒号+空格」「空格+井号」等会破坏 YAML 的写法
+       （平台报 yaml: mapping values are not allowed in this context 就是这个原因）
 """
 
 import hashlib
@@ -45,14 +47,19 @@ def parse_frontmatter(text):
     if end is None:
         raise SystemExit("SKILL.md 的 frontmatter 没有闭合的 ---")
     data = {}
+    raws = {}
     cur = None
     for line in parts[1:end]:
         if not line.strip():
             continue
         if line.lstrip().startswith("- ") and cur:
             data.setdefault(cur, [])
+            item = line.lstrip()[2:].strip()
             if isinstance(data[cur], list):
-                data[cur].append(line.lstrip()[2:].strip().strip('"').strip("'"))
+                data[cur].append(item.strip('"').strip("'"))
+            raws.setdefault(cur, [])
+            if isinstance(raws[cur], list):
+                raws[cur].append(item)
             continue
         m = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*)$", line)
         if not m:
@@ -60,11 +67,60 @@ def parse_frontmatter(text):
         key, val = m.group(1), m.group(2).strip()
         if val == "":
             data[key] = []
+            raws[key] = []
             cur = key
         else:
             data[key] = val.strip('"').strip("'")
+            raws[key] = val
             cur = None
-    return data
+    return data, raws
+
+
+INDICATORS = set("-?:,[]{}#&*!|>'\"%@`")
+
+
+def is_quoted(raw):
+    """值是否已被引号完整包住（成对的引号内部允许冒号+空格）。"""
+    if len(raw) < 2:
+        return False
+    q = raw[0]
+    if q not in "\"'":
+        return False
+    if raw[-1] != q:
+        return False
+    inner = raw[1:-1]
+    if q == '"':
+        # 内部不能有未转义的双引号
+        return not re.search(r'(?<!\\)"', inner)
+    return "'" not in inner
+
+
+def yaml_issues(val):
+    """检查一个 scalar 是否会破坏 YAML 解析。
+
+    平台报过的真实错误：`yaml: line 7: mapping values are not allowed in this context`，
+    根因是值里出现「ASCII 冒号 + 空格」（`Read-only: never ...`），
+    YAML 会把它当成嵌套 mapping 的起点。此处拦掉这一类。
+    已用成对引号包住的值豁免（引号内部的冒号+空格合法）。
+    """
+    out = []
+    if not isinstance(val, str):
+        return out
+    if is_quoted(val):
+        return out
+    if "\t" in val:
+        out.append("含 Tab")
+    if val != val.strip():
+        out.append("首尾有空白")
+    if ": " in val:
+        out.append("含「冒号+空格」，会被当成 mapping 起点")
+    if " #" in val:
+        out.append("含「空格+井号」，会被当成注释")
+    if val.endswith(":"):
+        out.append("以冒号结尾")
+    if val[:1] in INDICATORS:
+        out.append("以 YAML 指示符 %r 开头" % val[:1])
+    return out
 
 
 def check(src_dir, name):
@@ -72,12 +128,20 @@ def check(src_dir, name):
     if not os.path.isfile(md):
         raise SystemExit("缺 SKILL.md：%s" % md)
     with open(md, "r", encoding="utf-8") as fh:
-        fm = parse_frontmatter(fh.read())
+        fm, raws = parse_frontmatter(fh.read())
 
     problems = []
     for k in REQUIRED:
         if not fm.get(k):
             problems.append("缺必填字段：%s" % k)
+    for k, v in raws.items():
+        if isinstance(v, str):
+            for issue in yaml_issues(v):
+                problems.append("字段 %s %s" % (k, issue))
+        elif isinstance(v, list):
+            for i, item in enumerate(v):
+                for issue in yaml_issues(item):
+                    problems.append("字段 %s 第 %d 条 %s" % (k, i + 1, issue))
     nm = fm.get("name") or ""
     if nm and not re.match(r"^[a-z0-9]+(-[a-z0-9]+)*$", nm):
         problems.append("name 不是 kebab-case：%s" % nm)

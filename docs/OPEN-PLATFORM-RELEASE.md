@@ -103,7 +103,24 @@ https://open.workbuddy.cn/skill/publish?action=create&step=1
 | name 不是 kebab-case | 用了大写或下划线 | 改小写加连字符 |
 | 该名称「XXX」已被使用 | 同账号同类型 `display_name` 全局唯一，旧草稿占着名 | 先去列表删掉旧草稿，或换个展示名 |
 | 解析失败（无细节） | 多套了一层文件夹 | 确认解压后第一层就是技能目录 |
-| YAML 解析错误 | 用了 Tab / 冒号后没空格 / 引号不配对 | 统一两个空格缩进，冒号后一个空格 |
+| `yaml: line N: mapping values are not allowed in this context` | 该行值里出现**英文冒号 + 空格**（如 `Read-only: never ...`），YAML 把它当成嵌套 mapping 的起点 | 把该处冒号换成破折号/句号，或整段用引号包住 |
+| 其它 YAML 解析错误 | 用了 Tab / 冒号后没空格 / 引号不配对 | 统一两个空格缩进，冒号后一个空格 |
+
+### 我们实际踩中的那一次（2026-10-28）
+
+报错原文：
+
+```
+解析失败：
+SKILL.md 格式错误 — frontmatter 无法解析（yaml: line 7: mapping values are not allowed
+in this context），请检查 YAML 语法（如缩进、冒号后是否有空格、引号是否闭合）
+```
+
+行号是从 frontmatter **第一行内容**开始数的（不含开头的 `---`），所以第 7 行是 `description_en`。
+那一行原本写的是 `... Read-only: never checks in ...`，`Read-only` 后面的英文冒号加空格被判成了嵌套 mapping。
+改成 `Read-only — it never checks in ...` 后一次通过。
+
+`scripts/package_skill.py` 已把这条检查固化进去：任何未加引号的值里出现「冒号+空格」「空格+井号」「Tab」都直接拒绝打包并指出是哪个字段，不再靠肉眼。
 
 ---
 

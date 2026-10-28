@@ -19,8 +19,10 @@
 
 ### 文档
 
+- `docs/ESSAY-1024.md`：1024 造物挑战参赛征文《我把每天点五下的活，做成了一台不需要管的机器》，按「起因 / 它在干什么 / 四个设计 / 适合谁用 / 它值多少 / 技术栈」分节，与设计文档中的四条关键判断（不拿 UI 文案当业务状态、单飞锁、日志可写性探测、域名可选）逐条对应。
+- `docs/INSPIRATION-SUBMISSION.md`：灵感社区投稿材料（策展制，需走官方通道，非自助上架）。
 - `ARCHITECTURE.md` 保留为速览，与三份新文档互相引用，形成「速览 → 设计 → 接口 → 使用」的层次。
-- 版本号在 `VERSION`、三份新文档页首、`site/index.html`、`skill/SKILL.md` 保持一致。
+- 版本号在 `VERSION`、三份新文档页首、`README.md`、`CHANGELOG.md`、`site/index.html`、`skill/SKILL.md` 保持一致。
 
 ## 1.2.8 — 2026-10-28
 

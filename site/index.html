@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BuddyKeeper v1.2.8 · 发布页</title>
+<style>
+  :root {
+    --bg: #f7f8fa; --card: #ffffff; --line: #e5e7eb;
+    --text: #1f2328; --muted: #6b7280; --accent: #2f6feb; --ok: #16a34a; --warn: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    line-height: 1.65; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 20px 72px; }
+  header { margin-bottom: 28px; }
+  h1 { font-size: 30px; margin: 0 0 10px; letter-spacing: -0.3px; }
+  .sub { color: var(--muted); font-size: 15px; }
+  .badges { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge {
+    font-size: 13px; padding: 4px 10px; border-radius: 999px;
+    background: #eef2ff; color: #3730a3; border: 1px solid #e0e7ff;
+  }
+  .badge.ok { background: #ecfdf5; color: #047857; border-color: #d1fae5; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 22px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 16px; margin: 0 0 12px; }
+  .card h2 .n {
+    display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center;
+    background: var(--accent); color: #fff; border-radius: 6px; font-size: 12px; margin-right: 8px;
+  }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin: 5px 0; }
+  code {
+    background: #f3f4f6; border: 1px solid var(--line); border-radius: 5px;
+    padding: 1px 6px; font-size: 13px;
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; width: 34%; }
+  tr:last-child td, tr:last-child th { border-bottom: none; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note {
+    background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+    border-radius: 10px; padding: 14px 16px; font-size: 14px; margin-bottom: 16px;
+  }
+  footer { margin-top: 32px; color: var(--muted); font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>BuddyKeeper · 每日自动值守</h1>
+    <div class="sub">WorkBuddy 签到 / 猫猫旅行 / 积分余额 / 成长计划，每天 09:00 无人值守跑一次，结果推送到企业微信。</div>
+    <div class="badges">
+      <span class="badge ok">v1.2.8</span>
+      <span class="badge">cron 每天 09:00</span>
+      <span class="badge">Python 3 · 零第三方依赖（除 paramiko 部署用）</span>
+    </div>
+  </header>
+
+  <div class="note">
+    本页只做发布说明，<strong>不承载任何账号数据</strong>。真实运行状态在本人的值守服务器上，需访问令牌才能查看。
+  </div>
+
+  <div class="card">
+    <h2><span class="n">1</span>本次发布内容</h2>
+    <ul>
+      <li>修复「活动：⚠️ 有积分可领（立即领取）」的<strong>假阳性</strong>：改按真实可领积分判定，不再拿服务端静态按钮文案当依据。</li>
+      <li><code>claim_button_text</code> 降级为纯文案字段，明确注释「不代表可领」。</li>
+      <li>新增 <code>claimable_credit()</code>：签到看 <code>active &amp;&amp; !today_checked_in</code>，任务看进度达成且 <code>accept_status != claimed</code>。</li>
+      <li>部署脚本<strong>移除全部内置凭据</strong>，改为环境变量或本地未入库文件提供。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">2</span>这一版之前修过的关键问题</h2>
+    <ul>
+      <li>cron 每天 09:00 不执行：根因是日志文件被 root 创建成 644，ubuntu 的 <code>&gt;&gt;</code> 重定向在启动 Python 前就失败。现改为可写性探测 + 降级日志文件。</li>
+      <li>单飞锁：看板「立即执行一次」与定时任务并发时只跑一个，避免重复领取。</li>
+      <li>旅行奖励：到达后先领取再派遣，派出去不会丢积分。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">3</span>版本信息</h2>
+    <table>
+      <tr><th>版本</th><td>1.2.8</td></tr>
+      <tr><th>发布日期</th><td>2026-10-28</td></tr>
+      <tr><th>源码仓库</th><td><a href="https://github.com/yanningxx/buddy-keeper" target="_blank" rel="noopener">github.com/yanningxx/buddy-keeper</a></td></tr>
+      <tr><th>运行环境</th><td>Linux + cron + systemd，Python 3</td></tr>
+      <tr><th>数据库</th><td>CloudBase PostgreSQL（发布记录 / 归档数据）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">4</span>安全说明</h2>
+    <ul>
+      <li>仓库内<strong>不含任何凭据</strong>；服务器地址、账号、密码通过环境变量或本地 <code>config/deploy.local.json</code>（已 gitignore）提供。</li>
+      <li>运行期密钥文件、日志、会话 cookie 全部排除在版本库之外。</li>
+      <li>本页为纯静态文件，无脚本、无外链追踪。</li>
+    </ul>
+  </div>
+
+  <footer>BuddyKeeper v1.2.8 · 2026-10-28</footer>
+</div>
+</body>
+</html>

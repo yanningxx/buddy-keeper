@@ -1,0 +1,28 @@
+# 凭据与运行时数据（绝不入库）
+config/deploy.local.json
+config/config.json
+config/notify_token.txt
+config/wb_session_cookie.txt
+config/wecom_echo_conf.json
+config/*.txt
+
+# 运行时产物
+logs/
+state/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 本地临时脚本
+_*.py

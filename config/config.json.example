@@ -1,0 +1,8 @@
+{
+  "channels": {
+    "wecom": {
+      "webhook": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=在此填入企业微信机器人KEY",
+      "secret": ""
+    }
+  }
+}

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buddy 值守</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --line:#e6e8ec; --text:#1a1d24;
+    --muted:#6b7280; --accent:#2f6bff; --ok:#0a9d5b; --warn:#c77700; --err:#d13438;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:20px;background:var(--bg);color:var(--text);
+       font:14px/1.6 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  .wrap{max-width:720px;margin:0 auto}
+  header{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  h1{font-size:19px;margin:0;letter-spacing:.2px}
+  .tag{font-size:12px;color:var(--muted);border:1px solid var(--line);
+       background:#fff;border-radius:999px;padding:1px 8px}
+  .sub{color:var(--muted);font-size:13px;margin:2px 0 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+        padding:16px;margin-bottom:12px}
+  .row{display:flex;justify-content:space-between;align-items:center;
+       padding:9px 0;border-bottom:1px dashed var(--line)}
+  .row:last-child{border-bottom:0}
+  .k{color:var(--muted)}
+  .v{font-weight:600;font-variant-numeric:tabular-nums}
+  .balance{font-size:34px;font-weight:700;letter-spacing:-.5px;margin:2px 0 0;
+           font-variant-numeric:tabular-nums}
+  .balance small{font-size:13px;font-weight:500;color:var(--muted);margin-left:6px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .stat .k{font-size:12px}
+  .stat .v{font-size:17px;margin-top:2px}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;
+       margin-right:6px;vertical-align:1px}
+  .ok{background:var(--ok)} .warn{background:var(--warn)} .err{background:var(--err)}
+  .bar{display:flex;gap:8px;margin:14px 0 6px}
+  button{border:1px solid var(--line);background:#fff;color:var(--text);
+         border-radius:9px;padding:8px 14px;font-size:13px;cursor:pointer;
+         transition:.15s}
+  button:hover{border-color:#c9ced6;background:#fafbfc}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.primary:hover{filter:brightness(1.06)}
+  button:disabled{opacity:.55;cursor:default}
+  pre{background:#0f1115;color:#d7dae0;border-radius:10px;padding:12px;
+      font-size:12px;line-height:1.55;overflow:auto;max-height:260px;margin:0;
+      white-space:pre-wrap;word-break:break-all}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .empty{color:var(--muted);text-align:center;padding:26px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Buddy 值守</h1>
+    <span class="tag">BuddyKeeper</span>
+  </header>
+  <p class="sub">每日 09:00 自动签到 · 猫猫旅行 · 积分余额 · 成长计划</p>
+
+  <div class="card" id="balanceCard">
+    <div class="k">积分余额</div>
+    <div class="balance" id="balance">—<small id="plan"></small></div>
+    <div class="row"><span class="k">最近运行</span><span class="v" id="runAt">—</span></div>
+    <div class="row"><span class="k">执行状态</span><span class="v" id="runStatus">—</span></div>
+  </div>
+
+  <div class="grid" id="stats">
+    <div class="stat"><div class="k">签到</div><div class="v" id="checkin">—</div></div>
+    <div class="stat"><div class="k">旅行</div><div class="v" id="travel">—</div></div>
+    <div class="stat"><div class="k">成长计划</div><div class="v" id="growth">—</div></div>
+    <div class="stat"><div class="k">未完成任务</div><div class="v" id="tasks">—</div></div>
+  </div>
+
+  <div class="bar">
+    <button class="primary" id="btnRefresh">刷新</button>
+    <button id="btnRun">立即执行一次</button>
+  </div>
+  <div class="hint" id="hint">免令牌访问，打开即看；按钮可手动触发一次完整流程。</div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="k" style="margin-bottom:8px">运行日志（最近 40 行）</div>
+    <pre id="log">尚未加载</pre>
+  </div>
+</div>
+
+<script>
+const HOST = location.origin;   // 同源：看板由值守服务器同源托管，避免混合内容拦截
+const KEY = "buddykeeper.token";
+const $ = id => document.getElementById(id);
+
+function token(){
+  let t = localStorage.getItem(KEY);
+  if(!t){
+    t = prompt("请输入 BuddyKeeper 访问令牌（notify_token）");
+    if(t) localStorage.setItem(KEY, t.trim());
+  }
+  return t;
+}
+
+function num(v){
+  const f = parseFloat(v);
+  if(isNaN(f)) return String(v ?? "—");
+  return (Math.round(f*100)/100).toString();
+}
+
+function render(d){
+  const st = d.state || {};
+  const a = st.attempts || {};
+  const ck = (a.checkin || []).slice(-1)[0] || {};
+  const tv = (a.travel || []).slice(-1)[0] || {};
+  const ce = ck.extra || {}, te = tv.extra || {};
+
+  $("runAt").textContent = st.finished || st.started || "—";
+  const allOk = ck.ok !== false && tv.ok !== false && (ck.ok || tv.ok);
+  $("runStatus").innerHTML = allOk
+    ? '<span class="dot ok"></span>全部成功'
+    : '<span class="dot err"></span>存在失败';
+
+  const bal = ce.balance != null ? ce.balance : null;
+  $("balance").firstChild.nodeValue = bal != null ? num(bal) : "—";
+  $("plan").textContent = ce.plan ? "（" + ce.plan + "）" : "";
+
+  $("checkin").textContent = ck.ok
+    ? ("已签 · 连续 " + (ce.current_streak ?? "—") + " 天")
+    : "失败";
+  $("travel").textContent = tv.ok
+    ? ({traveling:"旅行中", arrived:"已完成", idle:"空闲"}[te.state] || te.state_text || "—")
+    : "失败";
+
+  const g = ce.growth || {};
+  $("growth").textContent = g.level != null
+    ? ("Lv" + g.level + (g.buddy ? " · " + g.buddy : ""))
+    : "—";
+  $("tasks").textContent = ce.unfinished_tasks != null
+    ? (ce.unfinished_tasks + " 项") : "—";
+
+  const tail = d.log_tail || [];
+  $("log").textContent = tail.length ? tail.join("\n") : "（暂无日志）";
+  $("hint").textContent = "上次同步：" + new Date().toLocaleTimeString();
+}
+
+async function load(){
+  $("hint").textContent = "加载中…";
+  try{
+    const r = await fetch(HOST + "/status");
+    const d = await r.json();
+    if(!d.ok){ $("hint").textContent = "读取失败：" + (d.detail || r.status); return; }
+    render(d);
+  }catch(e){
+    $("hint").textContent = "网络错误：" + e.message;
+  }
+}
+
+async function runNow(){
+  if(!confirm("立即执行一次完整流程（签到/旅行/播报并推送微信）？")) return;
+  $("btnRun").disabled = true;
+  try{
+    const r = await fetch(HOST + "/run", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: "{}"
+    });
+    const d = await r.json();
+    $("hint").textContent = d.detail || (d.ok ? "已触发" : "触发失败");
+    setTimeout(load, 9000);
+  }catch(e){
+    $("hint").textContent = "网络错误：" + e.message;
+  }finally{
+    $("btnRun").disabled = false;
+  }
+}
+
+$("btnRefresh").onclick = load;
+$("btnRun").onclick = runNow;
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>

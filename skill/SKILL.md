@@ -1,6 +1,6 @@
 ---
 name: buddy-keeper
-version: "1.2.9"
+version: "1.3.0"
 display_name: "WorkBuddy 每日签到全勤值守"
 display_name_en: "WorkBuddy Daily Check-in & Streak Watch"
 description: "值守 WorkBuddy 每日签到与全勤（Buddy加油站签到、今日礼包、猫猫旅行派遣、积分余额、成长计划）。当用户说「帮我签到」「今天签到了吗」「我是不是要断签了」「连续签了几天」「全勤还差多少」「设置每天自动签到」「以后不用我点了」，或提到 WorkBuddy 积分不够、断签、连续签到天数、全勤奖励、活动剩余天数时使用。在服务器上每天 09:00 无人值守执行：不依赖本机与客户端、不碰界面、无需扫码；签到与领取幂等不重复，并发只跑一份，失败按网络类与业务类分类重试且绝不静默失败，结果推送到企业微信，可在看板随时查状态并一键补跑。"

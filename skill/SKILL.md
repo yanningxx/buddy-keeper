@@ -1,6 +1,6 @@
 ---
 name: buddy-keeper
-version: "1.2.8"
+version: "1.2.9"
 display_name: BuddyKeeper 值守助手
 display_name_en: BuddyKeeper Daily Watch
 description: 查看与触发 WorkBuddy 每日自动值守（签到、猫猫旅行、积分余额、成长计划），并诊断定时任务是否正常执行。
@@ -73,6 +73,18 @@ cd /opt/buddy-keeper && /usr/bin/python3 lib/buddy_station.py --json --no-toast 
 - **「旅行：待领 N」**：`travel.reward_credit`，是本次旅行的**预计**奖励。只有 `state == "arrived"`（已到达）才可领取；`traveling` 状态下点任何按钮都领不到。到达后下次运行会自动先领再派。
 - **「活动：有积分可领（立即领取）」**：`claim_button_text` 是服务端下发的**静态文案**，已签到时它依然返回「立即领取」。真正可领判据是 `today_checked_in == false`（每日签到奖励）或任务进度达成且 `accept_status != claimed`。不要拿按钮文案当可领依据。
 - **任务奖励**：目前在客户端包与日志中均未发现独立的领取接口，重复扣问时不要编造接口。
+
+## 文档索引（答不上来时去这里查，不要猜）
+
+| 问题类型 | 看哪份 |
+|---|---|
+| 「它整体怎么设计的」「想加个功能改哪里」 | `docs/DESIGN.md`（设计文档） |
+| 「这个接口怎么调」「返回什么字段」「错误码含义」 | `docs/API.md`（接口文档） |
+| 「怎么装」「怎么配」「XX 报错怎么办」 | `docs/USAGE.md`（使用说明） |
+| 「鉴权怎么走的」「余额为什么要 UA」 | `docs/ARCHITECTURE.md`（架构速览） |
+| 「给看板配个域名 / 上 HTTPS」 | `docs/DOMAIN-SETUP.md` |
+
+接口速查：`GET /status`（看状态，免鉴权）、`POST /run`（触发一次，免鉴权）、`POST /notify`（推送，需 token）、`GET /`（看板页面）。
 
 ## 边界
 

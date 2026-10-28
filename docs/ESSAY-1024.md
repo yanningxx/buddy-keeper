@@ -1,7 +1,7 @@
 # 我把每天点五下的活，做成了一台不需要管的机器
 
 > 参加 WorkBuddy「1024 造物挑战」程序员节应用创作大赛
-> 作品：BuddyKeeper v1.2.9 ｜ 体验地址：<https://buddy-keeper.app.workbuddy.host/?sharecode=37JOHWXES6>
+> 作品：WorkBuddy 每日签到全勤值守 v1.3.0 ｜ 体验地址：<https://buddy-keeper.app.workbuddy.host/?sharecode=37JOHWXES6>
 > 源码：<https://github.com/yanningxx/buddy-keeper>
 
 ## 一、起因：一件小到不值得做、又烦到忘不掉的事

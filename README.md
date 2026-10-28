@@ -21,27 +21,44 @@
 
 ```
 buddy-keeper/
-├── VERSION                 版本号
-├── CHANGELOG.md            变更日志
+├── VERSION                    版本号（唯一真源）
+├── CHANGELOG.md               变更日志
+├── README.md                  本文件：定位、结构、部署与文档索引
 ├── src/
-│   ├── daily_runner.py     唯一入口：签到 + 旅行 + 播报编排
-│   ├── balance_direct.py   积分余额获取（自动续会话）
-│   └── wecom_echo_server.py 企业微信回调验证 + /notify 通知端点
+│   ├── daily_runner.py        唯一入口：签到 + 旅行 + 播报编排
+│   ├── balance_direct.py      积分余额获取（自动续会话）
+│   └── wecom_echo_server.py   企业微信回调 + /status /run /notify 端点
 ├── lib/
-│   ├── buddy_station.py    签到/旅行/成长计划技能实现
-│   ├── push_notify.py      多通道推送分发
-│   ├── rt_auth.py          长效 rt 令牌管理
-│   └── web_auth.py         网页登录态读取
+│   ├── buddy_station.py       签到 / 旅行 / 成长计划实现与可领判据
+│   ├── push_notify.py         多通道推送分发
+│   ├── rt_auth.py             长效 rt 令牌管理
+│   └── web_auth.py            网页登录态读取
 ├── config/
-│   └── config.json.example 推送配置模板
+│   └── config.json.example    推送配置模板（真实配置不入库）
 ├── scripts/
-│   ├── deploy.py           一键部署到服务器（凭据不入库）
-│   ├── setup_cron.sh       安装定时任务
+│   ├── deploy.py              一键部署到服务器（凭据走环境变量或本地文件）
+│   ├── setup_cron.sh          安装每天 09:00 的定时任务
+│   ├── bind_domain.py         可选：绑定自定义域名 + HTTPS，失败自动回滚
 │   ├── generate_archive_migration.py  历史计划任务归档 → SQL
-│   └── archive_insert.sql  归档数据的建表与插入语句
-└── docs/
-    ├── ARCHITECTURE.md     架构与接口说明
-    └── OPERATIONS.md       运维手册（故障处理）
+│   └── archive_insert.sql     归档数据的建表与插入语句
+├── app/
+│   └── index.html             值守看板（积分 / 签到 / 旅行 / 成长计划 / 日志）
+├── site/
+│   └── index.html             对外发布说明页（已上线，见文末链接）
+├── skill/
+│   └── SKILL.md               技能定义：WorkBuddy 每日签到全勤值守
+├── docs/
+│   ├── DESIGN.md              设计文档：架构分层、模块、数据模型、流程、异常、扩展
+│   ├── API.md                 接口文档：6 个接口的参数、错误码与示例
+│   ├── USAGE.md               使用说明：环境、安装配置、典型流程、常见问题
+│   ├── ARCHITECTURE.md        架构速览：鉴权体系与外部契约
+│   ├── OPERATIONS.md          运维手册：日常检查命令
+│   ├── DOMAIN-SETUP.md        可选：域名与 HTTPS 上线手册
+│   ├── SKILLHUB-LISTING.md    技能商店上架文案
+│   ├── ESSAY-1024.md          1024 造物挑战参赛征文
+│   ├── SHARE-XHS.md           小红书发布稿（含配图与自查）
+│   └── INSPIRATION-SUBMISSION.md  灵感社区投稿材料
+└── 绑定域名.cmd                Windows 双击入口，调用 scripts/bind_domain.py
 ```
 
 ## 安全约定（重要）
@@ -93,5 +110,14 @@ ssh ubuntu@<server> sudo bash /opt/buddy-keeper/scripts/setup_cron.sh
 | [运维手册](docs/OPERATIONS.md) | 日常检查命令清单 |
 | [域名与 HTTPS 上线手册](docs/DOMAIN-SETUP.md) | 可选：给看板绑定自定义域名 |
 | [灵感社区投稿稿](docs/INSPIRATION-SUBMISSION.md) | 案例投稿材料 |
+| [技能商店上架文案](docs/SKILLHUB-LISTING.md) | 名称拆解、商店说明、竞品对比、触发词 |
 | [1024 参赛征文](docs/ESSAY-1024.md) | 功能亮点、适用场景与实际价值 |
+| [小红书发布稿](docs/SHARE-XHS.md) | 标题、正文、配图顺序与发布自查 |
 | [变更记录](CHANGELOG.md) | 版本历史 |
+
+## 线上地址
+
+| 用途 | 地址 |
+|---|---|
+| 发布说明页 | <https://buddy-keeper.app.workbuddy.host/?sharecode=37JOHWXES6> |
+| 仓库 | <https://github.com/yanningxx/buddy-keeper> |

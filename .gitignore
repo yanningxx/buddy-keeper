@@ -26,3 +26,4 @@ Thumbs.db
 
 # 本地临时脚本
 _*.py
+dist/

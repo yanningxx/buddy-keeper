@@ -98,3 +98,47 @@
 | 版本号 | 与包内一致 | `1.3.0`（`VERSION` 为唯一真源） |
 | 开发者信息 | 平台账号 | `yanningxx` |
 | 审核要点 | 不得收益承诺、不得引导站外交易 | 本稿未涉及 |
+
+## 八、上传包（已构建，可直接提交）
+
+| 文件 | 结构 | 大小 | SHA-256 前 32 位 |
+|---|---|---|---|
+| `dist/buddy-keeper-skill-v1.3.0.zip` | `SKILL.md` 在压缩包根目录 | 3,755 B | `ed3bcee0b2b97c2fb44426fae4035072` |
+| `dist/buddy-keeper-skill-v1.3.0-foldered.zip` | `buddy-keeper/SKILL.md`（带顶层目录） | 3,781 B | `ce11de2b7eeeac1defd98462f894b331` |
+
+两个包内容一致，只是顶层结构不同——商店若要求「压缩包内直接是 SKILL.md」用扁平包，要求「带技能目录」用目录包。
+
+**已挂到 GitHub Release 附件，可不登录直接下载：**
+
+- <https://github.com/yanningxx/buddy-keeper/releases/download/v1.3.0/buddy-keeper-skill-v1.3.0.zip>
+- <https://github.com/yanningxx/buddy-keeper/releases/download/v1.3.0/buddy-keeper-skill-v1.3.0-foldered.zip>
+
+包内 `SKILL.md` 的 `description` 字段与第二节卡片正文**逐字一致**（269 字符，脚本比对通过）。
+
+## 九、提交上架（人工完成最后一步）
+
+WorkBuddy 当前没有开放「技能商店发布」的接口，我能做的只有搜索、安装、启用/禁用技能，**无法代替你点提交**。上架须在客户端内完成：
+
+1. 打开客户端 → 左侧「技能」→ 技能面板；
+2. 找到「上传技能 / 提交到技能市场」入口（不同版本位置略有差异，一般在技能页右上角或「我的」标签下）；
+3. 上传第八节的 zip，填写下表字段；
+4. 提交后等审核，通过后即在技能市场可搜到。
+
+### 待填字段
+
+| 字段 | 值 |
+|---|---|
+| 技能名称 | WorkBuddy 每日签到全勤值守 |
+| 卡片正文 | 见第二节，逐字粘贴 |
+| 版本号 | 1.3.0 |
+| 分类 | 效率 / 办公（productivity） |
+| 作者 | yanningxx |
+| 图标 | 512×512 PNG，建议 W 字标 + 暖黄底（**尚缺，需先准备**） |
+| 仓库 | <https://github.com/yanningxx/buddy-keeper> |
+
+### 提交前自查
+
+- [ ] 包内 `SKILL.md` 的 `name` 为 `buddy-keeper`，`version` 为 `1.3.0`，与 `VERSION` 一致
+- [ ] 卡片正文与第二节逐字一致（不要让编辑器把「」改成引号）
+- [ ] 正文未出现收益承诺（如「必得积分」「保证全勤」）
+- [ ] 未包含任何令牌、cookie、服务器地址

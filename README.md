@@ -46,7 +46,7 @@ buddy-keeper/
 ├── app/
 │   └── index.html             值守看板（积分 / 签到 / 旅行 / 成长计划 / 日志）
 ├── site/
-│   └── index.html             对外发布说明页（已上线，见文末链接）
+│   └── index.html             对外发布页：可交互看板 + 判据实验室 + 值守回放 + 发布说明
 ├── skill/
 │   ├── SKILL.md               技能定义（自用执行版）：含签到 / 旅行执行动作
 │   └── market/

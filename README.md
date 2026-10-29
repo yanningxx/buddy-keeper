@@ -1,8 +1,10 @@
-# Buddy 值守 / BuddyKeeper
+# WorkBuddy 每日签到全勤值守
 
-WorkBuddy 每日自动值守：签到、猫猫旅行、积分余额、成长计划、活动提醒，一条播报推送到企业微信群 + 个人微信。
+值守 WorkBuddy 每日签到与全勤（Buddy加油站签到、今日礼包、猫猫旅行派遣、积分余额、成长计划）。每天 09:00 在服务器无人值守执行，不依赖本机与客户端，结果推送到企业微信，看板可随时查状态并一键补跑。
 
-当前版本见 [VERSION](VERSION)（1.2.8）。
+> 内部代号与仓库名仍为 `buddy-keeper`：部署路径 `/opt/buddy-keeper`、cron 与部署脚本都依赖它，故不改。对外产品名统一为「WorkBuddy 每日签到全勤值守」。
+
+当前版本见 [VERSION](VERSION)（1.3.0）。参加 WorkBuddy「1024 造物挑战」程序员节应用创作大赛。
 
 ## 运行形态
 
@@ -19,27 +21,54 @@ WorkBuddy 每日自动值守：签到、猫猫旅行、积分余额、成长计�
 
 ```
 buddy-keeper/
-├── VERSION                 版本号
-├── CHANGELOG.md            变更日志
+├── VERSION                    版本号（唯一真源）
+├── CHANGELOG.md               变更日志
+├── README.md                  本文件：定位、结构、部署与文档索引
 ├── src/
-│   ├── daily_runner.py     唯一入口：签到 + 旅行 + 播报编排
-│   ├── balance_direct.py   积分余额获取（自动续会话）
-│   └── wecom_echo_server.py 企业微信回调验证 + /notify 通知端点
+│   ├── daily_runner.py        唯一入口：签到 + 旅行 + 播报编排
+│   ├── balance_direct.py      积分余额获取（自动续会话）
+│   └── wecom_echo_server.py   企业微信回调 + /status /run /notify 端点
 ├── lib/
-│   ├── buddy_station.py    签到/旅行/成长计划技能实现
-│   ├── push_notify.py      多通道推送分发
-│   ├── rt_auth.py          长效 rt 令牌管理
-│   └── web_auth.py         网页登录态读取
+│   ├── buddy_station.py       签到 / 旅行 / 成长计划实现与可领判据
+│   ├── push_notify.py         多通道推送分发
+│   ├── rt_auth.py             长效 rt 令牌管理
+│   └── web_auth.py            网页登录态读取
 ├── config/
-│   └── config.json.example 推送配置模板
+│   └── config.json.example    推送配置模板（真实配置不入库）
 ├── scripts/
-│   ├── deploy.py           一键部署到服务器（凭据不入库）
-│   ├── setup_cron.sh       安装定时任务
+│   ├── deploy.py              一键部署到服务器（凭据走环境变量或本地文件）
+│   ├── setup_cron.sh          安装每天 09:00 的定时任务
+│   ├── bind_domain.py         可选：绑定自定义域名 + HTTPS，失败自动回滚
 │   ├── generate_archive_migration.py  历史计划任务归档 → SQL
-│   └── archive_insert.sql  归档数据的建表与插入语句
-└── docs/
-    ├── ARCHITECTURE.md     架构与接口说明
-    └── OPERATIONS.md       运维手册（故障处理）
+│   ├── archive_insert.sql     归档数据的建表与插入语句
+│   ├── package_skill.py       技能打包 + 开放平台合规自检（八项必填 / kebab-case / 顶层目录一致性）
+│   └── make_skill_icon.py     生成 512×512 技能头像（纯标准库，零依赖）
+├── app/
+│   └── index.html             值守看板（积分 / 签到 / 旅行 / 成长计划 / 日志）
+├── site/
+│   └── index.html             对外发布页：可交互看板 + 判据实验室 + 值守回放 + 发布说明
+├── skill/
+│   ├── SKILL.md               技能定义（自用执行版）：含签到 / 旅行执行动作
+│   └── market/
+│       ├── SKILL.md           技能市场版（只读范围，用于开放平台过审）
+│       └── references/
+│           ├── data-fields.md        状态字段口径表（含四个易误判项）
+│           └── troubleshooting.md    「播报没来」判定树
+├── assets/
+│   └── skill-icon-512.png     技能市场头像（512×512 PNG，22 KB）
+├── docs/
+│   ├── DESIGN.md              设计文档：架构分层、模块、数据模型、流程、异常、扩展
+│   ├── API.md                 接口文档：6 个接口的参数、错误码与示例
+│   ├── USAGE.md               使用说明：环境、安装配置、典型流程、常见问题
+│   ├── ARCHITECTURE.md        架构速览：鉴权体系与外部契约
+│   ├── OPERATIONS.md          运维手册：日常检查命令
+│   ├── DOMAIN-SETUP.md        可选：域名与 HTTPS 上线手册
+│   ├── SKILLHUB-LISTING.md    技能商店上架文案
+│   ├── OPEN-PLATFORM-RELEASE.md  开放平台（全网技能池）上架手册：认证、上传、逐屏填写、避坑
+│   ├── ESSAY-1024.md          1024 造物挑战参赛征文
+│   ├── SHARE-XHS.md           小红书发布稿（含配图与自查）
+│   └── INSPIRATION-SUBMISSION.md  灵感社区投稿材料
+└── 绑定域名.cmd                Windows 双击入口，调用 scripts/bind_domain.py
 ```
 
 ## 安全约定（重要）
@@ -91,4 +120,16 @@ ssh ubuntu@<server> sudo bash /opt/buddy-keeper/scripts/setup_cron.sh
 | [运维手册](docs/OPERATIONS.md) | 日常检查命令清单 |
 | [域名与 HTTPS 上线手册](docs/DOMAIN-SETUP.md) | 可选：给看板绑定自定义域名 |
 | [灵感社区投稿稿](docs/INSPIRATION-SUBMISSION.md) | 案例投稿材料 |
+| [技能商店上架文案](docs/SKILLHUB-LISTING.md) | 名称拆解、商店说明、竞品对比、触发词 |
+| [开放平台上架手册](docs/OPEN-PLATFORM-RELEASE.md) | 全网技能池：认证、上传、逐屏填写字段、七条避坑、审核答辩口径 |
+| [1024 参赛征文](docs/ESSAY-1024.md) | 功能亮点、适用场景与实际价值 |
+| [小红书发布稿](docs/SHARE-XHS.md) | 标题、正文、配图顺序与发布自查 |
+| [1024 重新投稿填写单](docs/CONTEST-SUBMISSION-v2.md) | 13 项逐条可粘贴内容、4 张截图清单、驳回原因逐条对照 |
 | [变更记录](CHANGELOG.md) | 版本历史 |
+
+## 线上地址
+
+| 用途 | 地址 |
+|---|---|
+| 发布说明页 | <https://buddy-keeper.app.workbuddy.host/?sharecode=37JOHWXES6> |
+| 仓库 | <https://github.com/yanningxx/buddy-keeper> |

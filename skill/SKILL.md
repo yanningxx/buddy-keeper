@@ -1,18 +1,19 @@
 ---
 name: buddy-keeper
-version: "1.2.9"
-display_name: BuddyKeeper 值守助手
-display_name_en: BuddyKeeper Daily Watch
-description: 查看与触发 WorkBuddy 每日自动值守（签到、猫猫旅行、积分余额、成长计划），并诊断定时任务是否正常执行。
-description_zh: 查看与触发 WorkBuddy 每日自动值守（签到、猫猫旅行、积分余额、成长计划），并诊断定时任务是否正常执行。
-description_en: Inspect and trigger the WorkBuddy daily watch (check-in, buddy travel, credits, growth plan) and diagnose cron health.
+version: "1.3.0"
+display_name: "WorkBuddy 每日签到全勤值守"
+display_name_en: "WorkBuddy Daily Check-in & Streak Watch"
+description: "值守 WorkBuddy 每日签到与全勤（Buddy加油站签到、今日礼包、猫猫旅行派遣、积分余额、成长计划）。当用户说「帮我签到」「今天签到了吗」「我是不是要断签了」「连续签了几天」「全勤还差多少」「设置每天自动签到」「以后不用我点了」，或提到 WorkBuddy 积分不够、断签、连续签到天数、全勤奖励、活动剩余天数时使用。在服务器上每天 09:00 无人值守执行：不依赖本机与客户端、不碰界面、无需扫码；签到与领取幂等不重复，并发只跑一份，失败按网络类与业务类分类重试且绝不静默失败，结果推送到企业微信，可在看板随时查状态并一键补跑。"
+description_zh: "值守 WorkBuddy 每日签到与全勤（Buddy加油站签到、今日礼包、猫猫旅行派遣、积分余额、成长计划）。触发词：帮我签到、今天签到了吗、是不是要断签了、连续签了几天、全勤还差多少、设置每天自动签到、以后不用我点了、断签、连续签到天数、全勤奖励。服务器端每天 09:00 无人值守执行，不依赖本机、不碰界面、无需扫码，幂等不重复，并发只跑一份，失败分类重试且不静默，结果推送企业微信，可在看板查看并一键补跑。"
+description_en: "Watches your daily WorkBuddy check-in and streak (Buddy Gas Station check-in, daily gift, buddy travel dispatch, credit balance, growth plan). Use when the user says \"help me check in\", \"did I check in today\", \"am I about to break my streak\", \"how many days in a row\", \"how far from full attendance\", or \"set up a daily auto check-in\", or mentions missed check-ins, streak days, full-attendance rewards, or remaining activity days. Runs unattended on a server at 09:00 daily: no local client, no UI tapping, no QR scan; idempotent claims, single-flight lock, classified retries, never fails silently, pushes results to WeCom, and supports dashboard review plus one-click re-run."
 author: yanningxx
 category: productivity
 ---
 
-# BuddyKeeper 值守助手
+# WorkBuddy 每日签到全勤值守（BuddyKeeper）
 
-把 WorkBuddy 的每日签到 / 猫猫旅行 / 积分播报这套无人值守流程，做成可问、可查、可诊断的技能。
+把 WorkBuddy 的每日签到 / 猫猫旅行 / 积分播报这套流程，做成**服务器上每天 09:00 自己跑、可问、可查、可诊断、可补跑**的技能。
+与「本机签到类」技能的区别只有一条：它不依赖你的电脑开着，也不依赖你说话——**全勤是连续扣分项，断一天补不回来，所以它必须自己跑**。
 
 ## 什么时候用
 
@@ -83,6 +84,8 @@ cd /opt/buddy-keeper && /usr/bin/python3 lib/buddy_station.py --json --no-toast 
 | 「怎么装」「怎么配」「XX 报错怎么办」 | `docs/USAGE.md`（使用说明） |
 | 「鉴权怎么走的」「余额为什么要 UA」 | `docs/ARCHITECTURE.md`（架构速览） |
 | 「给看板配个域名 / 上 HTTPS」 | `docs/DOMAIN-SETUP.md` |
+| 「这作品有什么亮点 / 怎么向别人介绍」 | `docs/ESSAY-1024.md`（1024 造物挑战参赛征文） |
+| 「怎么投稿到灵感社区 / 官方案例」 | `docs/INSPIRATION-SUBMISSION.md`（策展制，需走官方通道） |
 
 接口速查：`GET /status`（看状态，免鉴权）、`POST /run`（触发一次，免鉴权）、`POST /notify`（推送，需 token）、`GET /`（看板页面）。
 

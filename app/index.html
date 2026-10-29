@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Buddy 值守</title>
+<title>WorkBuddy 每日签到全勤值守</title>
 <style>
   :root{
     --bg:#f6f7f9; --card:#fff; --line:#e6e8ec; --text:#1a1d24;
@@ -53,8 +53,8 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>Buddy 值守</h1>
-    <span class="tag">BuddyKeeper</span>
+    <h1>WorkBuddy 每日签到全勤值守</h1>
+    <span class="tag">每日签到全勤值守</span>
   </header>
   <p class="sub">每日 09:00 自动签到 · 猫猫旅行 · 积分余额 · 成长计划</p>
 
@@ -92,7 +92,7 @@ const $ = id => document.getElementById(id);
 function token(){
   let t = localStorage.getItem(KEY);
   if(!t){
-    t = prompt("请输入 BuddyKeeper 访问令牌（notify_token）");
+    t = prompt("请输入访问令牌（notify_token）");
     if(t) localStorage.setItem(KEY, t.trim());
   }
   return t;

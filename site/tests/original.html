@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WorkBuddy 每日签到全勤值守 · 实时看板与判据实验室</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --line:#e5e7eb; --text:#1a1d24; --muted:#6b7280;
+    --accent:#2f6feb; --ok:#0f9d58; --warn:#c77700; --err:#d13438;
+    --okbg:#ecfdf5; --warnbg:#fffbeb; --errbg:#fef2f2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);line-height:1.65;
+       font:14px/1.65 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+       -webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:40px 20px 64px}
+  /* ---- 头部 ---- */
+  header{margin-bottom:22px}
+  h1{font-size:28px;margin:0 0 8px;letter-spacing:-.3px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap}
+  .badge{font-size:12.5px;padding:3px 10px;border-radius:999px;background:#eef2ff;
+         color:#3730a3;border:1px solid #e0e7ff;white-space:nowrap}
+  .badge.ok{background:var(--okbg);color:#047857;border-color:#d1fae5}
+  .badge.live{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+  /* ---- 切换 ---- */
+  nav{display:flex;gap:4px;background:#fff;border:1px solid var(--line);
+      border-radius:12px;padding:5px;margin:22px 0 18px;overflow:auto}
+  nav button{flex:1;min-width:104px;border:0;background:transparent;color:var(--muted);
+             font:inherit;font-size:13.5px;padding:9px 10px;border-radius:8px;cursor:pointer;
+             transition:.15s;white-space:nowrap}
+  nav button:hover{background:#f3f4f6;color:var(--text)}
+  nav button.on{background:var(--accent);color:#fff;font-weight:600}
+  .panel{display:none}
+  .panel.on{display:block;animation:fade .22s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  /* ---- 卡片 ---- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+        padding:18px 20px;margin-bottom:14px}
+  .card h2{font-size:15px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
+  .card h2 .n{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;
+              background:var(--accent);color:#fff;border-radius:6px;font-size:11.5px}
+  .hero{background:linear-gradient(135deg,#fff 0%,#f6f9ff 100%)}
+  .hero .big{font-size:26px;font-weight:700;letter-spacing:-.3px;margin:2px 0 6px}
+  .hero .big em{font-style:normal;color:var(--ok)}
+  .hero .meta{color:var(--muted);font-size:13px}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;
+       vertical-align:1px;background:var(--ok)}
+  .dot.warn{background:var(--warn)} .dot.err{background:var(--err)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+  .stat .k{font-size:12px;color:var(--muted)}
+  .stat .v{font-size:17px;font-weight:650;margin-top:3px;font-variant-numeric:tabular-nums}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+       padding:9px 0;border-bottom:1px dashed var(--line)}
+  .row:last-child{border-bottom:0}
+  .row .k{color:var(--muted);flex:none}
+  .row .v{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+  pre{background:#0f1115;color:#d7dae0;border-radius:10px;padding:14px;margin:0;
+      font:12.5px/1.6 ui-monospace,"Cascadia Code",Consolas,monospace;
+      overflow:auto;max-height:300px;white-space:pre-wrap;word-break:break-all}
+  .bubble{background:#eef7ee;border:1px solid #d5e8d4;border-radius:12px;padding:16px 18px;
+          font-size:13.5px;line-height:1.85}
+  .bubble b{color:#0b6b3a}
+  /* ---- 判据实验室 ---- */
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .presets button{border:1px solid var(--line);background:#fff;color:var(--text);
+                  font:inherit;font-size:13px;padding:8px 13px;border-radius:9px;cursor:pointer;
+                  transition:.15s}
+  .presets button:hover{border-color:#c9ced6;background:#fafbfc}
+  .presets button.on{background:#1a1d24;color:#fff;border-color:#1a1d24}
+  .dual{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .verdict{border-radius:10px;padding:14px 16px;font-size:13.5px;border:1px solid}
+  .verdict.bad{background:var(--errbg);border-color:#fecaca}
+  .verdict.good{background:var(--okbg);border-color:#bbf7d0}
+  .verdict .tag{font-size:11.5px;font-weight:700;letter-spacing:.4px;color:var(--muted);
+                display:block;margin-bottom:6px}
+  .verdict .line{font-weight:700;font-size:15px;margin-bottom:4px}
+  .why{margin:12px 0 0;padding-left:18px;color:var(--muted);font-size:13px}
+  .why li{margin:4px 0}
+  code{background:#f3f4f6;border:1px solid var(--line);border-radius:5px;padding:1px 5px;
+       font:12.5px ui-monospace,Consolas,monospace}
+  /* ---- 回放 ---- */
+  .timeline{list-style:none;margin:0;padding:0}
+  .timeline li{display:flex;gap:12px;padding:10px 0;opacity:.32;transition:.3s}
+  .timeline li.on{opacity:1}
+  .timeline .t{flex:none;width:64px;color:var(--muted);font:12.5px ui-monospace,Consolas,monospace}
+  .timeline .m{flex:1}
+  .timeline .m b{display:block;font-size:13.5px}
+  .timeline .m span{color:var(--muted);font-size:12.5px}
+  .bar{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+  button.act{border:1px solid var(--line);background:#fff;color:var(--text);font:inherit;
+             font-size:13px;padding:9px 16px;border-radius:9px;cursor:pointer;transition:.15s}
+  button.act:hover{border-color:#c9ced6;background:#fafbfc}
+  button.act.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.act.primary:hover{filter:brightness(1.06)}
+  button.act:disabled{opacity:.55;cursor:default}
+  .hint{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+  /* ---- 说明 ---- */
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;width:30%}
+  tr:last-child th,tr:last-child td{border-bottom:0}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  ul.plain{margin:0;padding-left:20px} ul.plain li{margin:5px 0}
+  footer{margin-top:30px;color:var(--muted);font-size:12.5px;text-align:center}
+  @media(max-width:640px){
+    .grid{grid-template-columns:1fr 1fr}
+    .dual{grid-template-columns:1fr}
+    h1{font-size:23px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>WorkBuddy 每日签到全勤值守</h1>
+  <p class="sub">每天 09:00 在服务器上无人值守跑一次：签到、猫猫旅行、积分余额、成长计划，结果推送到企业微信。</p>
+  <div class="badges">
+    <span class="badge live">数据来自 2026-10-29 09:00 真实运行</span>
+    <span class="badge ok">v1.3.0</span>
+    <span class="badge">cron 每天 09:00</span>
+    <span class="badge">Python 3 · 零第三方运行时依赖</span>
+  </div>
+</header>
+
+<nav>
+  <button data-tab="board" class="on">值守看板</button>
+  <button data-tab="lab">判据实验室</button>
+  <button data-tab="replay">模拟一次值守</button>
+  <button data-tab="notes">发布说明</button>
+</nav>
+
+<!-- ================= 看板 ================= -->
+<section class="panel on" id="board">
+  <div class="card hero">
+    <div class="big"><span class="dot"></span>今日<em>已签到</em> · 连续 <em>4</em> 天</div>
+    <div class="meta">最后一次运行 2026-10-29 09:01:10 收尾，签到与旅行全部成功 · 本次无重试残留失败</div>
+  </div>
+
+  <div class="grid">
+    <div class="stat"><div class="k">累计签到</div><div class="v">15 天</div></div>
+    <div class="stat"><div class="k">积分余额</div><div class="v">303.3</div></div>
+    <div class="stat"><div class="k">成长计划</div><div class="v">Lv18 · 拿铁喵 R</div></div>
+    <div class="stat"><div class="k">未完成任务</div><div class="v">1 项</div></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">1</span>今日值守结果</h2>
+    <div class="row"><span class="k">签到</span><span class="v">已签 · 连续 4 天 · 累计 15 天</span></div>
+    <div class="row"><span class="k">旅行</span><span class="v">旅行中 · 已领 +6 · 已派出前往【古镇客栈】</span></div>
+    <div class="row"><span class="k">待领（预计）</span><span class="v">5 积分 · 未到达，不算已到账</span></div>
+    <div class="row"><span class="k">本周出勤</span><span class="v">4 / 7 天</span></div>
+    <div class="row"><span class="k">活动</span><span class="v">Buddy 应用 剩 63 天 · 全勤 +6300</span></div>
+    <div class="row"><span class="k">推送</span><span class="v">企业微信 · errcode 0（ok）</span></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">2</span>推到企业微信的那条播报（原文）</h2>
+    <div class="bubble">
+      <b>WorkBuddy 每日播报 2026-10-29（全部成功）</b><br>
+      <b>✅ 签到</b>：已签｜连续 4 天｜累计 15 天<br>
+      <b>✅ 旅行</b>：旅行中｜已领 +6｜🚀 已派出 Buddy 前往【古镇客栈】<br>
+      <b>积分余额</b>：303.3<br>
+      <b>成长计划</b>：Lv18｜拿铁喵 R｜本周 4/7 天｜未完成任务 1 项<br>
+      <b>活动</b>：Buddy应用 剩63天 全勤+6300<br>
+      <b>免费模型</b>：Hy3 限时免费 0.00x；Hy4 preview 夜间免费 0.29x；Deepseek-V4.1-Flash 夜间折扣 0.11x（以客户端为准）
+    </div>
+    <p class="hint">这条播报由服务器生成后推送到企业微信，不需要打开任何客户端，也不需要你人在电脑前。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">3</span>运行日志（最近 40 行中的关键段）</h2>
+    <pre>[2026-10-29 09:00:02] ==== 开始当日自动化（2026-10-29）====
+[2026-10-29 09:00:04]   [checkin] 失败，60 秒后快速重试（1/2）：签到失败：未知原因
+[2026-10-29 09:01:07] checkin 首跑：成功 —— 今日已签到（幂等，不重复领取）
+[2026-10-29 09:01:09] travel 首跑：成功 —— 旅行流程已执行（含自动领取）
+[2026-10-29 09:01:10] ==== 当日报告 ====
+[2026-10-29 09:01:11] 推送结果：✅ wecom: {"errcode":0,"errmsg":"ok"}
+✅ wecom_app: 已发送 1 段（个人微信插件全文可见，无条数限制）
+[2026-10-29 09:01:11] ==== 当日自动化结束 ====</pre>
+    <p class="hint">09:00:04 那次失败会自己重试，65 秒后成功。失败不等于断签 —— 这正是它必须跑在服务器上、而不是靠人记得点。</p>
+  </div>
+</section>
+
+<!-- ================= 判据实验室 ================= -->
+<section class="panel" id="lab">
+  <div class="card">
+    <h2><span class="n">!</span>这里演示这个项目最核心的一件事：判据</h2>
+    <p class="sub" style="margin:0">点下面四种真实遇到过的情形，看「旧逻辑」和「现在的判据」分别会得出什么结论。
+    这一块不是示意图，四组数据都来自真实接口的返回。</p>
+  </div>
+
+  <div class="presets" id="presets">
+    <button data-i="0" class="on">今日已签，但按钮写着「立即领取」</button>
+    <button data-i="1">今日未签，真的可以领</button>
+    <button data-i="2">旅行「待领 6」，但猫还在路上</button>
+    <button data-i="3">任务进度达标，但已经领过了</button>
+  </div>
+
+  <div class="card">
+    <div class="row"><span class="k">接口返回</span><span class="v" style="font-weight:500;text-align:right">
+      <code id="jsonBox">today_checked_in: true, claim_button_text: "立即领取"</code>
+    </span></div>
+    <div class="dual" style="margin-top:14px">
+      <div class="verdict bad">
+        <span class="tag">旧逻辑（按按钮文案判断）</span>
+        <div class="line" id="oldLine">会说：有积分可领</div>
+        <div style="color:var(--muted);font-size:13px" id="oldWhy">因为按钮上写着「立即领取」，就当成可领。</div>
+      </div>
+      <div class="verdict good">
+        <span class="tag">现在的判据（按数据事实）</span>
+        <div class="line" id="newLine">实际：不可领</div>
+        <div style="color:var(--muted);font-size:13px" id="newWhy">今日已签，签到奖励已到账。</div>
+      </div>
+    </div>
+    <ul class="why" id="whyList">
+      <li>「立即领取」是服务端下发的<strong>静态 UI 文案</strong>，已签到时依然返回这四个字。</li>
+      <li>唯一可信的判据是 <code>today_checked_in</code> 这个布尔值。</li>
+      <li>结论：这条告警以前每天必报一次，2026-10-28 修掉，现在不再出现。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 回放 ================= -->
+<section class="panel" id="replay">
+  <div class="card">
+    <h2><span class="n">▶</span>把 2026-10-29 那次值守按时间轴重放一遍</h2>
+    <p class="sub" style="margin:0 0 14px">时间点、耗时、失败与重试全部取自真实日志，没有美化。</p>
+    <div class="bar">
+      <button class="act primary" id="btnPlay">开始回放</button>
+      <button class="act" id="btnReset">重置</button>
+      <span class="hint" id="playHint" style="margin:0">共 6 步，约 4 秒</span>
+    </div>
+  </div>
+  <div class="card">
+    <ul class="timeline" id="timeline">
+      <li><span class="t">09:00:02</span><span class="m"><b>定时任务触发</b><span>cron 唤醒，开始当日流程</span></span></li>
+      <li><span class="t">09:00:04</span><span class="m"><b>签到首跑失败</b><span>接口返回未知原因，进入 60 秒等待重试</span></span></li>
+      <li><span class="t">09:01:07</span><span class="m"><b>签到重试成功</b><span>今日已签到（幂等，不重复领取）</span></span></li>
+      <li><span class="t">09:01:09</span><span class="m"><b>旅行流程完成</b><span>先领 +6，再派出前往【古镇客栈】</span></span></li>
+      <li><span class="t">09:01:10</span><span class="m"><b>生成播报</b><span>按真实数据组装六段文本</span></span></li>
+      <li><span class="t">09:01:11</span><span class="m"><b>推送企业微信</b><span>errcode 0 · 全文可见</span></span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 说明 ================= -->
+<section class="panel" id="notes">
+  <div class="card">
+    <h2><span class="n">1</span>它解决的是什么</h2>
+    <p style="margin:0">WorkBuddy 的签到是<strong>连续扣分项</strong>：断一天，连续天数与全勤奖励一起归零，补不回来。
+    而这个动作每天要重复四五下，人一定会忘。所以它被做成一台不需要人盯的机器 —— 跑在服务器上，和你开不开电脑无关。</p>
+  </div>
+  <div class="card">
+    <h2><span class="n">2</span>四个设计决定</h2>
+    <ul class="plain">
+      <li><strong>不拿 UI 文案当业务状态</strong>：按钮写「立即领取」不代表能领，只看数据字段。这是本版修掉的第一个真 bug。</li>
+      <li><strong>幂等</strong>：重复执行不会重复领取；已签到时接口直接跳过，日志里记「幂等，不重复领取」。</li>
+      <li><strong>单飞锁</strong>：手动补跑与定时任务撞车时只跑一份，不会两次同时领。</li>
+      <li><strong>失败分类重试，且绝不静默</strong>：网络类重试，业务类直接报；推送失败也会在日志里留痕，不会假装成功。</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2><span class="n">3</span>文档与源码</h2>
+    <table>
+      <tr><th>源码仓库</th><td><a href="https://github.com/yanningxx/buddy-keeper" target="_blank" rel="noopener">github.com/yanningxx/buddy-keeper</a></td></tr>
+      <tr><th>设计文档</th><td><a href="https://github.com/yanningxx/buddy-keeper/blob/main/docs/DESIGN.md" target="_blank" rel="noopener">架构分层 / 模块划分 / 数据模型 / 关键流程</a></td></tr>
+      <tr><th>接口文档</th><td><a href="https://github.com/yanningxx/buddy-keeper/blob/main/docs/API.md" target="_blank" rel="noopener">6 个接口的参数、错误码与调用示例</a></td></tr>
+      <tr><th>使用说明</th><td><a href="https://github.com/yanningxx/buddy-keeper/blob/main/docs/USAGE.md" target="_blank" rel="noopener">环境准备 / 安装配置 / 典型流程 / 10 条常见问题</a></td></tr>
+      <tr><th>参赛征文</th><td><a href="https://github.com/yanningxx/buddy-keeper/blob/main/docs/ESSAY-1024.md" target="_blank" rel="noopener">这个作品是怎么被做出来的</a></td></tr>
+      <tr><th>运行环境</th><td>Linux + cron + systemd，Python 3，本地 JSON 状态文件 + 日志，无数据库</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h2><span class="n">4</span>关于这块页面的数据</h2>
+    <ul class="plain">
+      <li>看板与日志是 <strong>2026-10-29 09:00 那次真实运行</strong>的结果快照，随发布更新，不是手写的示意数字。</li>
+      <li>页面<strong>不含任何凭据、服务器地址、账号信息</strong>，也<strong>不提供任何触发入口</strong> —— 值守只在服务器上按点自跑。</li>
+      <li>原始 JSON 可以在上面的「判据实验室」和日志里逐条对照。</li>
+    </ul>
+  </div>
+</section>
+
+<footer>WorkBuddy 每日签到全勤值守 v1.3.0 · 展示快照 2026-10-29 · WorkBuddy 1024 造物挑战参赛作品</footer>
+</div>
+
+<script>
+/* ---------- 切换 ---------- */
+document.querySelectorAll("nav button").forEach(function(b){
+  b.onclick = function(){
+    document.querySelectorAll("nav button").forEach(function(x){x.classList.remove("on")});
+    document.querySelectorAll(".panel").forEach(function(x){x.classList.remove("on")});
+    b.classList.add("on");
+    document.getElementById(b.dataset.tab).classList.add("on");
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+});
+
+/* ---------- 判据实验室 ---------- */
+var CASES = [
+  {
+    json:'today_checked_in: true, claim_button_text: "立即领取"',
+    oldLine:"会说：有积分可领", oldWhy:"因为按钮上写着「立即领取」，就当成可领。",
+    newLine:"实际：不可领", newWhy:"今日已签，签到奖励已经到账。",
+    why:["「立即领取」是服务端下发的<strong>静态 UI 文案</strong>，已签到时依然返回这四个字。",
+         "唯一可信的判据是 <code>today_checked_in</code> 这个布尔值。",
+         "这条告警以前每天必报一次，2026-10-28 修掉，现在不再出现。"]
+  },
+  {
+    json:'today_checked_in: false, active: true, claim_button_text: "立即领取"',
+    oldLine:"会说：有积分可领", oldWhy:"碰巧对了 —— 但依据是文案，不是数据。",
+    newLine:"实际：可领", newWhy:"未签到且活动在有效期内，判定成立。",
+    why:["判据是 <code>active && !today_checked_in</code> 两个条件的合取。",
+         "旧逻辑在这里结论正好相同，所以更难发现它在别的场景会错 —— 这叫「偶然正确」。",
+         "同一个判据在第一种情形就会错，说明它从来不是可靠依据。"]
+  },
+  {
+    json:'travel.state: "traveling", travel.reward_credit: 6',
+    oldLine:"会说：待领 +6，去领一下", oldWhy:"把「预计奖励」当成「已到账」。",
+    newLine:"实际：还没到，不用管", newWhy:"只有 state == arrived 才真正可领。",
+    why:["<code>reward_credit</code> 是这一趟的<strong>预计</strong>发放额，猫还在路上。",
+         "真正的判据是 <code>state == \"arrived\"</code>。",
+         "按旧逻辑，每天都会提示去领一笔还不存在的积分。"]
+  },
+  {
+    json:'progress: 3/3, accept_status: "claimed", has_reward: true',
+    oldLine:"会说：任务达标，有奖励可领", oldWhy:"只看进度条到没到 100%。",
+    newLine:"实际：已经领过了", newWhy:"accept_status 为 claimed，奖励早已入账。",
+    why:["任务可领要同时满足四个条件：进度达标、<code>accept_status != claimed</code>、<code>has_reward</code>、奖励额大于 0。",
+         "少任何一个都会误报。",
+         "这条是本项目 2026-10-28 实测 19 个任务、其中 18 个已领取后才补上的判据。"]
+  }
+];
+var TIMELINE_STEPS = 6;
+var playTimer = null;
+
+document.querySelectorAll("#presets button").forEach(function(b){
+  b.onclick = function(){
+    document.querySelectorAll("#presets button").forEach(function(x){x.classList.remove("on")});
+    b.classList.add("on");
+    var c = CASES[+b.dataset.i];
+    document.getElementById("jsonBox").textContent = c.json;
+    document.getElementById("oldLine").textContent = c.oldLine;
+    document.getElementById("oldWhy").textContent  = c.oldWhy;
+    document.getElementById("newLine").textContent = c.newLine;
+    document.getElementById("newWhy").textContent  = c.newWhy;
+    var ul = document.getElementById("whyList");
+    ul.innerHTML = "";
+    c.why.forEach(function(t){
+      var li = document.createElement("li");
+      li.innerHTML = t;
+      ul.appendChild(li);
+    });
+  };
+});
+
+/* ---------- 回放 ---------- */
+function resetTimeline(){
+  if(playTimer){clearTimeout(playTimer);playTimer=null}
+  var items = document.querySelectorAll("#timeline li");
+  items.forEach(function(li){li.classList.remove("on")});
+  document.getElementById("btnPlay").disabled = false;
+  document.getElementById("btnPlay").textContent = "开始回放";
+  document.getElementById("playHint").textContent = "共 6 步，约 4 秒";
+}
+function play(){
+  resetTimeline();
+  var items = document.querySelectorAll("#timeline li");
+  var i = 0;
+  var btn = document.getElementById("btnPlay");
+  btn.disabled = true;
+  btn.textContent = "回放中…";
+  function step(){
+    if(i >= items.length){
+      btn.disabled = false;
+      btn.textContent = "再放一次";
+      document.getElementById("playHint").textContent = "回放结束：全部成功（期间发生 1 次失败重试）";
+      return;
+    }
+    items[i].classList.add("on");
+    i++;
+    document.getElementById("playHint").textContent = "第 " + i + " / " + TIMELINE_STEPS + " 步";
+    playTimer = setTimeout(step, 700);
+  }
+  step();
+}
+document.getElementById("btnPlay").onclick = play;
+document.getElementById("btnReset").onclick = resetTimeline;
+
+/* ---------- 首次进入：轻微提示 ---------- */
+setTimeout(function(){
+  var h = document.getElementById("playHint");
+  if(h && !playTimer) h.textContent = "共 6 步，约 4 秒";
+}, 100);
+</script>
+</body>
+</html>

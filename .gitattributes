@@ -1,0 +1,4 @@
+# 发布页是按哈希逐字节核对过的产物：禁止换行转换，否则 Windows 检出后
+# sha256 会与线上文件不一致（只有行尾不同，但哈希完全不同），核对就失去了意义。
+site/index.html -text
+site/tests/original.html -text

@@ -14,7 +14,8 @@
   body{margin:0;background:var(--bg);color:var(--text);line-height:1.65;
        font:14px/1.65 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
        -webkit-font-smoothing:antialiased}
-  .wrap{max-width:900px;margin:0 auto;padding:40px 20px 64px}
+  .wrap{max-width:900px;margin:0 auto;padding:40px 20px 64px;transition:max-width .22s ease}
+  body[data-tab="kanban"] .wrap{max-width:1180px}
   /* ---- 头部 ---- */
   header{margin-bottom:22px}
   h1{font-size:28px;margin:0 0 8px;letter-spacing:-.3px}
@@ -24,6 +25,7 @@
          color:#3730a3;border:1px solid #e0e7ff;white-space:nowrap}
   .badge.ok{background:var(--okbg);color:#047857;border-color:#d1fae5}
   .badge.live{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+  .badge.new{background:#f0f9ff;color:#0369a1;border-color:#bae6fd}
   /* ---- 切换 ---- */
   nav{display:flex;gap:4px;background:#fff;border:1px solid var(--line);
       border-radius:12px;padding:5px;margin:22px 0 18px;overflow:auto}
@@ -89,13 +91,16 @@
   .timeline .m{flex:1}
   .timeline .m b{display:block;font-size:13.5px}
   .timeline .m span{color:var(--muted);font-size:12.5px}
-  .bar{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+  .bar{display:flex;gap:10px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
   button.act{border:1px solid var(--line);background:#fff;color:var(--text);font:inherit;
              font-size:13px;padding:9px 16px;border-radius:9px;cursor:pointer;transition:.15s}
   button.act:hover{border-color:#c9ced6;background:#fafbfc}
   button.act.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   button.act.primary:hover{filter:brightness(1.06)}
   button.act:disabled{opacity:.55;cursor:default}
+  button.act.sm{padding:6px 11px;font-size:12.5px;border-radius:8px}
+  button.act.danger{color:var(--err);border-color:#fecaca}
+  button.act.danger:hover{background:var(--errbg)}
   .hint{font-size:12.5px;color:var(--muted);margin:10px 0 0}
   /* ---- 说明 ---- */
   table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -105,14 +110,134 @@
   a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
   ul.plain{margin:0;padding-left:20px} ul.plain li{margin:5px 0}
   footer{margin-top:30px;color:var(--muted);font-size:12.5px;text-align:center}
+
+  /* ================= 任务看板（新增标签） ================= */
+  .kb-head{margin-bottom:12px}
+  .kb-titlerow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .kb-title{font:inherit;font-size:19px;font-weight:700;color:inherit;background:transparent;
+            border:1px solid transparent;border-radius:8px;padding:3px 8px;margin-left:-8px;
+            flex:1;min-width:160px;letter-spacing:-.2px}
+  .kb-title:hover{border-color:var(--line);background:#fafbfc}
+  .kb-title:focus{outline:none;border-color:var(--accent);background:#fff}
+  .kb-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+  .kb-tools input[type="search"],.kb-tools select{
+    font:inherit;font-size:13px;color:var(--text);background:#fff;border:1px solid var(--line);
+    border-radius:9px;padding:8px 11px;min-width:132px}
+  .kb-tools input[type="search"]{flex:1;min-width:180px}
+  .kb-tools input:focus,.kb-tools select:focus{outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(47,111,235,.12)}
+  .kb-share{display:inline-flex;align-items:center;gap:8px;background:#f8fafc;border:1px dashed var(--line);
+            border-radius:9px;padding:6px 10px;font:12.5px ui-monospace,Consolas,monospace;color:var(--muted)}
+  .kb-share b{color:var(--text);letter-spacing:.5px}
+  /* 身份条 */
+  .kb-id{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);
+         border-radius:9px;padding:5px 10px;font-size:12.5px;color:var(--muted);cursor:pointer}
+  .kb-id:hover{border-color:#c9ced6;background:#fafbfc}
+  .kb-id .dotid{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+  .kb-id.ro .dotid{background:var(--warn)}
+  .kb-id b{color:var(--text);font:12px ui-monospace,Consolas,monospace;letter-spacing:.4px}
+  .kb-lock{display:inline-flex;align-items:center;gap:6px;background:var(--warnbg);color:#92400e;
+           border:1px solid #fde68a;border-radius:8px;padding:4px 10px;font-size:12.5px}
+  /* 只读态：隐藏所有写入口 */
+  .kb-ro .kb-add-card,.kb-ro .kb-col-menu{display:none}
+  .kb-ro .kb-card{cursor:default}
+  .kb-ro .kb-card:hover{border-color:var(--line);box-shadow:none;transform:none}
+  .kb-ro .kb-title{background:#f8fafc;cursor:default}
+  .kb-ro .kb-col-name{cursor:default}
+  .kb-board{display:flex;gap:12px;align-items:flex-start;overflow-x:auto;padding:2px 2px 12px}
+  .kb-col{flex:1 1 268px;min-width:252px;max-width:344px;background:#f4f5f7;
+          border:1px solid var(--line);border-radius:12px;
+          padding:9px;display:flex;flex-direction:column;max-height:66vh}
+  .kb-col-head{display:flex;align-items:center;gap:8px;padding:3px 5px 9px}
+  .kb-col-name{font-weight:650;font-size:13.5px;flex:1;min-width:0;overflow:hidden;
+               text-overflow:ellipsis;white-space:nowrap}
+  .kb-count{font-size:11.5px;color:var(--muted);background:#fff;border:1px solid var(--line);
+            border-radius:999px;padding:0 7px;line-height:18px}
+  .kb-col-menu{border:0;background:transparent;color:var(--muted);cursor:pointer;
+               border-radius:6px;padding:2px 6px;font-size:15px;line-height:1}
+  .kb-col-menu:hover{background:#e6e8eb;color:var(--text)}
+  .kb-cards{display:flex;flex-direction:column;gap:8px;overflow-y:auto;min-height:46px;
+            flex:1;padding:2px;border-radius:9px;transition:background .15s}
+  .kb-cards.dragover{background:#e3edfd;outline:1px dashed #9dbdf3;outline-offset:-2px}
+  .kb-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+           cursor:grab;box-shadow:0 1px 2px rgba(16,24,40,.05);transition:.14s}
+  .kb-card:hover{border-color:#c9ced6;box-shadow:0 2px 6px rgba(16,24,40,.08)}
+  .kb-card:active{cursor:grabbing}
+  .kb-card.dragging{opacity:.35}
+  .kb-card-title{font-size:13.5px;font-weight:600;line-height:1.5;word-break:break-word}
+  .kb-card-desc{font-size:12.5px;color:var(--muted);margin-top:4px;
+                display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .kb-card-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+  .kb-card-foot{display:flex;align-items:center;gap:6px;margin-top:9px;min-height:22px}
+  .kb-card-foot .sp{flex:1}
+  .kb-due{font-size:11.5px;color:var(--muted);background:#f3f4f6;border-radius:6px;padding:1px 7px}
+  .kb-due.soon{background:var(--warnbg);color:var(--warn)}
+  .pill{font-size:11.5px;border-radius:999px;padding:1px 8px;border:1px solid;line-height:18px}
+  .avatar{width:22px;height:22px;border-radius:50%;color:#fff;font-size:11px;font-weight:600;
+          display:inline-flex;align-items:center;justify-content:center;flex:none;
+          border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(16,24,40,.06)}
+  .avatars{display:flex;gap:-2px}
+  .avatars .avatar+.avatar{margin-left:-6px}
+  .kb-add-card{margin-top:8px;width:100%;border:0;background:transparent;color:var(--muted);
+               font:inherit;font-size:12.5px;padding:7px;border-radius:8px;cursor:pointer;text-align:left}
+  .kb-add-card:hover{background:#e6e8eb;color:var(--text)}
+  .kb-empty{color:var(--muted);font-size:12.5px;text-align:center;padding:14px 6px;
+            border:1px dashed var(--line);border-radius:9px;background:#fbfbfc}
+  /* 骨架屏 */
+  .sk{background:linear-gradient(90deg,#eef0f3 25%,#e4e7eb 37%,#eef0f3 63%);
+      background-size:400% 100%;animation:sh 1.3s ease infinite;border-radius:8px}
+  @keyframes sh{0%{background-position:100% 50%}100%{background-position:0 50%}}
+  /* 弹窗 */
+  .mask{position:fixed;inset:0;background:rgba(16,24,40,.42);display:none;
+        align-items:center;justify-content:center;padding:20px;z-index:50}
+  .mask.on{display:flex;animation:fade .16s ease}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:520px;padding:20px;
+         max-height:86vh;overflow:auto;box-shadow:0 20px 50px rgba(16,24,40,.24)}
+  .modal h3{margin:0 0 14px;font-size:16px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+  .field input,.field textarea,.field select{
+    width:100%;font:inherit;font-size:13.5px;color:var(--text);background:#fff;
+    border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+  .field textarea{resize:vertical;min-height:74px;line-height:1.6}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;
+    border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,111,235,.12)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px;
+        font-size:12.5px;cursor:pointer;transition:.12s;display:inline-flex;align-items:center;gap:5px}
+  .chip:hover{border-color:#c9ced6}
+  .chip.on{background:#eef4ff;border-color:var(--accent);color:#1d4ed8;font-weight:600}
+  .chip .x{border:0;background:transparent;color:inherit;cursor:pointer;padding:0 0 0 2px;
+           font-size:13px;line-height:1;opacity:.6}
+  .chip .x:hover{opacity:1}
+  .modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+  .modal-foot .sp{flex:1}
+  /* 轻提示 */
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(16px);
+         background:#1a1d24;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;
+         opacity:0;pointer-events:none;transition:.24s;z-index:60;max-width:88vw;text-align:center}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{background:var(--err)}
+  .toast.ok{background:#0b6b3a}
+
   @media(max-width:640px){
     .grid{grid-template-columns:1fr 1fr}
     .dual{grid-template-columns:1fr}
     h1{font-size:23px}
+    .wrap{padding:26px 14px 48px}
+    .kb-col{flex:0 0 82vw;min-width:0;max-width:none}
+    .kb-col{max-height:none}
+    .kb-titlerow{gap:8px}
+    .kb-title{flex:1 0 100%;font-size:17px;margin-left:0;min-width:0}
+    .kb-tools{gap:6px}
+    .kb-tools input[type="search"]{flex:1 0 100%;min-width:0}
+    .kb-tools select{flex:1 1 110px;min-width:110px}
+    .kb-board{padding-bottom:16px}
+    nav button{min-width:88px;font-size:12.5px}
   }
 </style>
 </head>
-<body>
+<body data-tab="board">
 <div class="wrap">
 
 <header>
@@ -123,6 +248,7 @@
     <span class="badge ok">v1.3.0</span>
     <span class="badge">cron 每天 09:00</span>
     <span class="badge">Python 3 · 零第三方运行时依赖</span>
+    <span class="badge new">任务看板 · CloudBase 云数据库</span>
   </div>
 </header>
 
@@ -130,6 +256,7 @@
   <button data-tab="board" class="on">值守看板</button>
   <button data-tab="lab">判据实验室</button>
   <button data-tab="replay">模拟一次值守</button>
+  <button data-tab="kanban">任务看板</button>
   <button data-tab="notes">发布说明</button>
 </nav>
 
@@ -247,6 +374,43 @@
   </div>
 </section>
 
+<!-- ================= 任务看板 ================= -->
+<section class="panel" id="kanban">
+  <div class="card kb-head">
+    <div class="kb-titlerow">
+      <input id="boardTitle" class="kb-title" value="加载中…" maxlength="60" aria-label="看板标题">
+      <button class="act sm" id="btnShare">复制分享链接</button>
+      <button class="act sm" id="btnNewBoard">新建看板</button>
+      <button class="act sm" id="btnReload" title="重新从云端拉取">刷新</button>
+    </div>
+    <div class="kb-tools">
+      <input type="search" id="q" placeholder="搜索卡片标题或描述…" aria-label="搜索卡片">
+      <select id="fMember" aria-label="按成员筛选"><option value="">全部成员</option></select>
+      <select id="fTag" aria-label="按标签筛选"><option value="">全部标签</option></select>
+      <button class="act sm" id="btnAddMember">+ 成员</button>
+      <button class="act sm" id="btnAddTag">+ 标签</button>
+      <button class="act sm primary" id="btnAddColumn">+ 添加列表</button>
+    </div>
+    <div class="kb-tools" style="margin-top:10px">
+      <span class="kb-share">分享码 <b id="shareCode">—</b></span>
+      <span class="kb-id" id="kbIdBox" role="button" tabindex="0" title="查看本机身份 / 换设备登录">
+        <span class="dotid"></span><span id="kbIdText">正在登录…</span>
+      </span>
+      <span class="kb-lock" id="kbLock" style="display:none">只读 · 这个看板属于另一个身份</span>
+      <span class="hint" id="kbStatus" style="margin:0">正在连接云端…</span>
+    </div>
+  </div>
+
+  <div class="kb-board" id="kbBoard">
+    <div class="kb-col"><div class="kb-col-head"><span class="sk" style="width:60%;height:14px;display:block"></span></div>
+      <div class="kb-cards"><div class="sk" style="height:56px"></div><div class="sk" style="height:44px"></div></div></div>
+    <div class="kb-col"><div class="kb-col-head"><span class="sk" style="width:52%;height:14px;display:block"></span></div>
+      <div class="kb-cards"><div class="sk" style="height:44px"></div></div></div>
+    <div class="kb-col"><div class="kb-col-head"><span class="sk" style="width:64%;height:14px;display:block"></span></div>
+      <div class="kb-cards"><div class="sk" style="height:38px"></div></div></div>
+  </div>
+</section>
+
 <!-- ================= 说明 ================= -->
 <section class="panel" id="notes">
   <div class="card">
@@ -282,24 +446,108 @@
       <li>原始 JSON 可以在上面的「判据实验室」和日志里逐条对照。</li>
     </ul>
   </div>
+  <div class="card">
+    <h2><span class="n">5</span>关于「任务看板」这个标签</h2>
+    <ul class="plain">
+      <li>原页面是<strong>只读展示页</strong>，没有卡片、没有拖拽、没有成员与标签。这一块是复刻时新增的，视觉沿用同一套设计变量。</li>
+      <li>数据存在 <strong>CloudBase 云数据库（PostgreSQL）</strong>：看板与卡片两张表，页面直接走 HTTP 接口读写。</li>
+      <li>每次打开这个标签会先做一次<strong>匿名登录</strong>，拿到一枚稳定的身份 id；你新建的看板，写权限就绑在这枚 id 上。</li>
+      <li>分享码写进地址栏 <code>?code=XXXXXXXX</code>，别人打开能看、能筛选，但<strong>改不了</strong>。这条限制写在数据库的行级安全策略里，不是前端把按钮藏起来 —— 绕过页面直接调接口同样会被拒。</li>
+      <li>换电脑或换浏览器时，把工具栏「身份」里的<strong>身份码</strong>粘过去再登录，就能接管自己建过的看板。</li>
+    </ul>
+  </div>
 </section>
 
 <footer>WorkBuddy 每日签到全勤值守 v1.3.0 · 展示快照 2026-10-29 · WorkBuddy 1024 造物挑战参赛作品</footer>
 </div>
 
+<!-- 编辑卡片 -->
+<div class="mask" id="cardMask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cardModalTitle">
+    <h3 id="cardModalTitle">编辑卡片</h3>
+    <div class="field"><label for="cTitle">标题</label>
+      <input id="cTitle" maxlength="120" placeholder="这张卡片要做什么"></div>
+    <div class="field"><label for="cDesc">描述</label>
+      <textarea id="cDesc" maxlength="1000" placeholder="补充说明（可留空）"></textarea></div>
+    <div class="field"><label>标签</label><div class="chips" id="cTags"></div></div>
+    <div class="field"><label>成员</label><div class="chips" id="cMembers"></div></div>
+    <div class="field"><label for="cDue">截止日期</label>
+      <input id="cDue" type="date"></div>
+    <div class="modal-foot">
+      <button class="act danger" id="btnDelCard" style="margin-right:auto">删除</button>
+      <button class="act" data-close="cardMask">取消</button>
+      <button class="act primary" id="btnSaveCard">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通用输入弹窗 -->
+<div class="mask" id="promptMask">
+  <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+    <h3 id="promptTitle">输入</h3>
+    <div class="field"><label for="promptInput" id="promptLabel">名称</label>
+      <input id="promptInput" maxlength="40"></div>
+    <div class="field" id="promptColorWrap"><label>颜色</label><div class="chips" id="promptColors"></div></div>
+    <div class="modal-foot">
+      <button class="act" data-close="promptMask">取消</button>
+      <button class="act primary" id="promptOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 确认弹窗 -->
+<div class="mask" id="confirmMask">
+  <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+    <h3 id="confirmTitle">确认操作</h3>
+    <p id="confirmText" style="margin:0 0 4px;color:var(--muted);font-size:13.5px"></p>
+    <div class="modal-foot">
+      <button class="act" data-close="confirmMask">取消</button>
+      <button class="act danger" id="confirmOk">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 身份 -->
+<div class="mask" id="idMask">
+  <div class="modal" style="max-width:520px" role="dialog" aria-modal="true" aria-labelledby="idTitle">
+    <h3 id="idTitle">本机身份</h3>
+    <p style="margin:0 0 12px;color:var(--muted);font-size:13px" id="idIntro"></p>
+    <div class="field">
+      <label for="idCode">身份码 —— 换电脑或换浏览器时，把它粘到那边再点登录，就能接管自己建过的看板</label>
+      <textarea id="idCode" spellcheck="false" autocomplete="off"
+                style="font:12px ui-monospace,Consolas,monospace;min-height:62px"></textarea>
+    </div>
+    <p class="hint" id="idMsg" style="margin:0"></p>
+    <div class="modal-foot">
+      <button class="act danger" id="btnIdReset" style="margin-right:auto">重置身份</button>
+      <button class="act" data-close="idMask">关闭</button>
+      <button class="act" id="btnIdCopy">复制身份码</button>
+      <button class="act primary" id="btnIdUse">用这段身份码登录</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-/* ---------- 切换 ---------- */
+/* ============================================================
+   1. 标签切换（与原页面一致）
+   ============================================================ */
 document.querySelectorAll("nav button").forEach(function(b){
   b.onclick = function(){
     document.querySelectorAll("nav button").forEach(function(x){x.classList.remove("on")});
     document.querySelectorAll(".panel").forEach(function(x){x.classList.remove("on")});
     b.classList.add("on");
     document.getElementById(b.dataset.tab).classList.add("on");
+    document.body.dataset.tab = b.dataset.tab;
     window.scrollTo({top:0,behavior:"smooth"});
+    if(b.dataset.tab === "kanban" && !KB.board && !KB.loading){ KB.boot(); }
   };
 });
 
-/* ---------- 判据实验室 ---------- */
+/* ============================================================
+   2. 判据实验室
+   ============================================================ */
 var CASES = [
   {
     json:'today_checked_in: true, claim_button_text: "立即领取"',
@@ -357,11 +605,12 @@ document.querySelectorAll("#presets button").forEach(function(b){
   };
 });
 
-/* ---------- 回放 ---------- */
+/* ============================================================
+   3. 值守回放
+   ============================================================ */
 function resetTimeline(){
   if(playTimer){clearTimeout(playTimer);playTimer=null}
-  var items = document.querySelectorAll("#timeline li");
-  items.forEach(function(li){li.classList.remove("on")});
+  document.querySelectorAll("#timeline li").forEach(function(li){li.classList.remove("on")});
   document.getElementById("btnPlay").disabled = false;
   document.getElementById("btnPlay").textContent = "开始回放";
   document.getElementById("playHint").textContent = "共 6 步，约 4 秒";
@@ -390,11 +639,1077 @@ function play(){
 document.getElementById("btnPlay").onclick = play;
 document.getElementById("btnReset").onclick = resetTimeline;
 
-/* ---------- 首次进入：轻微提示 ---------- */
-setTimeout(function(){
-  var h = document.getElementById("playHint");
-  if(h && !playTimer) h.textContent = "共 6 步，约 4 秒";
-}, 100);
+/* ============================================================
+   4. 任务看板 —— CloudBase PG（PostgREST 风格 HTTP 接口）
+   ============================================================ */
+var CFG = {
+  env: 'xuyanning-d2g5ejg513e3c8e1d',
+  rest: 'https://xuyanning-d2g5ejg513e3c8e1d.api.tcloudbasegateway.com/v1/rdb/rest',
+  auth: 'https://xuyanning-d2g5ejg513e3c8e1d.api.tcloudbasegateway.com/auth/v1',
+  key: 'eyJhbGciOiJSUzI1NiIsImtpZCI6ImVjYzFmMjUxLTgzNGEtNGVhMC1iNDdhLTM5NjdiMjNiZmUzYSJ9.eyJpc3MiOiJodHRwczovL3h1eWFubmluZy1kMmc1ZWpnNTEzZTNjOGUxZC5hcC1zaGFuZ2hhaS50Y2ItYXBpLnRlbmNlbnRjbG91ZGFwaS5jb20iLCJzdWIiOiJhbm9uIiwiYXVkIjoieHV5YW5uaW5nLWQyZzVlamc1MTNlM2M4ZTFkIiwiZXhwIjo0MDk1NTM2MDY5LCJpYXQiOjE3OTE4NTI4NjksIm5vbmNlIjoiejA2dEhNcU5UUktIMUl4TGpsdU1uZyIsImF0X2hhc2giOiJ6MDZ0SE1xTlRSS0gxSXhMamx1TW5nIiwibmFtZSI6IkFub255bW91cyIsInNjb3BlIjoiYW5vbnltb3VzIiwicHJvamVjdF9pZCI6Inh1eWFubmluZy1kMmc1ZWpnNTEzZTNjOGUxZCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.n4nIrI8S9D9um19UPse-stFvLGRcNQg7lF49SKUwj3hpg-ayWB5uddyFrSjCUBd06leRNI6OBohkBIaJ8g7PBoeV9yS77J0y5uGEnTkcVa29tCS5d-nqb59Jm1XMljja4QMCuU87vJid330CvGB85zGPN1mbuQXrLT0eB5bwCOoFqHPtnvU_5DpMUQEGt8JEKLkv4stfU9BgEw7XGzMYmK6rDZUgdKgidZuG6qXD3-V7bFpe4o3Ogwr9obwYXmM02U0Ivd_C4RW2og-F0LqD5n-DIKyXHt16EVn2nJqKMtPebsQvhhU2oTw7rCmFFxWJyBqmCZIywI2jXBRXCZEVqQ'
+};
+
+/* ============================================================
+   4.0 身份：CloudBase 匿名登录
+   ------------------------------------------------------------
+   数据面的写权限由数据库 RLS 按 owner_uid = auth.uid() 判定，
+   前端这一层只负责三件事：
+     1. 每个浏览器第一次进来时拿一个稳定的身份 id（存 localStorage）
+     2. 把 access_token 注入每个数据请求
+     3. 算清楚「我能不能改这个看板」，据此切换只读态
+
+   为什么用匿名登录而不是账号密码：
+     本环境的 /auth/v1/signup 必须带邮箱或手机验证码
+     （纯用户名密码直接返回 501 UNIMPLEMENTED），管理端也没有
+     建用户的入口，自助注册这条路走不通。匿名登录给出的是真 JWT、
+     稳定 uid，足以支撑「只有自己能改」。
+   ============================================================ */
+var AUTH = {
+  DEV_KEY: 'kb_device_id',
+  TOK_KEY: 'kb_auth',
+  st: null,
+  inflight: null,
+  dead: false,          // 登录彻底失败 → 退回 publishable key，只读
+
+  deviceId: function(){
+    var d = null;
+    try{ d = localStorage.getItem(AUTH.DEV_KEY); }catch(e){}
+    if(!d || d.length < 8){
+      d = 'kb-' + uid(6) + '-' + Date.now().toString(36) + '-' + uid(6);
+      try{ localStorage.setItem(AUTH.DEV_KEY, d); }catch(e){}
+    }
+    return d;
+  },
+  load: function(){
+    if(AUTH.st) return AUTH.st;
+    try{
+      var raw = localStorage.getItem(AUTH.TOK_KEY);
+      if(raw){
+        var j = JSON.parse(raw);
+        if(j && j.access_token && j.sub) AUTH.st = j;
+      }
+    }catch(e){}
+    return AUTH.st;
+  },
+  save: function(j){
+    AUTH.st = j;
+    try{ localStorage.setItem(AUTH.TOK_KEY, JSON.stringify(j)); }catch(e){}
+    return j;
+  },
+  clear: function(){
+    AUTH.st = null;
+    try{ localStorage.removeItem(AUTH.TOK_KEY); }catch(e){}
+  },
+  subOf: function(t){
+    try{
+      var p = String(t).split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      while(p.length % 4) p += '=';
+      return (JSON.parse(decodeURIComponent(escape(atob(p)))).sub) || '';
+    }catch(e){ return ''; }
+  },
+  normalize: function(r){
+    return AUTH.save({
+      access_token: r.access_token,
+      refresh_token: r.refresh_token || null,
+      sub: AUTH.subOf(r.access_token),
+      exp: Math.floor(Date.now() / 1000) + (r.expires_in || 7200)
+    });
+  },
+  signin: function(){
+    return fetch(CFG.auth + '/signin/anonymously', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-device-id': AUTH.deviceId() },
+      body: '{}'
+    }).then(function(r){
+      return r.json().then(function(j){
+        if(!r.ok) throw new Error(j.error_description || ('登录失败 HTTP ' + r.status));
+        if(!j.access_token) throw new Error('登录响应里没有 access_token');
+        return AUTH.normalize(j);
+      }, function(){ throw new Error('登录失败 HTTP ' + r.status); });
+    });
+  },
+  refresh: function(rt){
+    return fetch(CFG.auth + '/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: rt })
+    }).then(function(r){
+      return r.json().then(function(j){
+        if(!r.ok || !j.access_token) throw new Error('refresh 失败');
+        return AUTH.normalize(j);
+      }, function(){ throw new Error('refresh 失败'); });
+    });
+  },
+  ensure: function(){
+    var s = AUTH.load();
+    var now = Math.floor(Date.now() / 1000);
+    if(s && s.exp - 120 > now) return Promise.resolve(s);
+    if(AUTH.inflight) return AUTH.inflight;
+    var job = (s && s.refresh_token)
+      ? AUTH.refresh(s.refresh_token).catch(function(){ return AUTH.signin(); })
+      : AUTH.signin();
+    AUTH.inflight = job.then(function(v){
+      AUTH.inflight = null; AUTH.dead = false; return v;
+    }, function(e){
+      AUTH.inflight = null; AUTH.dead = true; throw e;
+    });
+    return AUTH.inflight;
+  },
+  reset: function(){
+    AUTH.clear();
+    try{ localStorage.removeItem(AUTH.DEV_KEY); }catch(e){}
+    return AUTH.ensure();
+  },
+  adopt: function(devId){
+    try{ localStorage.setItem(AUTH.DEV_KEY, devId); }catch(e){}
+    AUTH.clear();
+    return AUTH.signin();
+  }
+};
+
+var PALETTE = ['#2f6feb','#0f9d58','#c77700','#d13438','#7c3aed','#0891b2','#db2777','#4b5563'];
+
+var KB = {
+  board: null,
+  cards: [],
+  loading: false,
+  dirtyUntil: 0,
+  dragging: false,
+  editing: null,
+  pollTimer: null,
+  canEdit: false
+};
+
+/* ---------- 基础工具 ---------- */
+function uid(n){
+  var s = 'abcdefghijklmnopqrstuvwxyz0123456789', o = '';
+  for(var i=0;i<(n||10);i++){ o += s[Math.floor(Math.random()*s.length)]; }
+  return o;
+}
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+var toastTimer = null;
+function toast(msg, kind){
+  var el = document.getElementById('toast');
+  el.className = 'toast on' + (kind ? ' ' + kind : '');
+  el.textContent = msg;
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.className = 'toast'; }, 2600);
+}
+function status(msg){
+  var el = document.getElementById('kbStatus');
+  if(el) el.textContent = msg;
+}
+
+/* ---------- 接口层 ---------- */
+/* 越权写在 PostgREST 上有两种表现，都必须翻译成人话：
+     · INSERT —— 401 + DATABASE_42501（new row violates row-level security policy）
+     · UPDATE/DELETE —— 200/204，但影响 0 行，不报错，只是什么都没发生
+   第二种靠状态码看不出来，所以前端另外用 canEdit() 提前把写入口收掉。 */
+function isPermErr(data){
+  if(!data) return false;
+  var code = String(data.code || '');
+  var msg = String(data.message || '');
+  return code.indexOf('DATABASE_42501') === 0 || /row-level security/i.test(msg);
+}
+function friendlyErr(status, data){
+  var m = (data && (data.message || data.error_description || data.hint)) ||
+          (typeof data === 'string' ? data : '');
+  if(isPermErr(data)) return '没有权限：这个看板属于另一个身份';
+  if(status === 401) return '登录已过期，请刷新页面重新进入';
+  if(status === 403) return '没有权限：' + (m || '被数据库策略拒绝');
+  if(status === 0) return '网络不可达，请检查网络后重试';
+  return 'HTTP ' + status + (m ? ' · ' + m : '');
+}
+function bearer(){
+  if(AUTH.dead) return Promise.resolve(CFG.key);   // 登录不可用 → 只读兜底
+  return AUTH.ensure().then(function(s){ return s.access_token; },
+                            function(){ return CFG.key; });
+}
+function api(path, opt){
+  opt = opt || {};
+  var method = opt.method || 'GET';
+  var sent = false;
+
+  function attempt(){
+    return bearer().then(function(tok){
+      var headers = { 'Authorization': 'Bearer ' + tok };
+      if(opt.body !== undefined) headers['Content-Type'] = 'application/json';
+      if(opt.prefer) headers['Prefer'] = opt.prefer;
+      return fetch(CFG.rest + path, {
+        method: method,
+        headers: headers,
+        body: opt.body === undefined ? undefined : JSON.stringify(opt.body)
+      }).catch(function(){
+        var e = new Error('网络不可达，请检查网络后重试');
+        e.status = 0;
+        throw e;
+      });
+    });
+  }
+  function handle(r){
+    var ct = r.headers.get('content-type') || '';
+    var parse = ct.indexOf('json') >= 0 ? r.json() : r.text();
+    return parse.then(function(data){
+      if(r.ok) return data;
+      var err = new Error(friendlyErr(r.status, data));
+      err.status = r.status;
+      err.data = data;
+      throw err;
+    }, function(){
+      var e = new Error('响应解析失败（HTTP ' + r.status + '）');
+      e.status = r.status;
+      throw e;
+    });
+  }
+
+  return attempt().then(function(r){
+    if(r.status !== 401) return handle(r);
+    // 先看是不是 token 过期；RLS 拒绝也是 401，那种情况刷新没用
+    return r.clone().json().catch(function(){ return null; }).then(function(data){
+      if(isPermErr(data) || sent){
+        var err = new Error(friendlyErr(401, data));
+        err.status = 401; err.data = data; throw err;
+      }
+      sent = true;
+      AUTH.clear();
+      return attempt().then(handle);
+    });
+  }, function(e){
+    var err = new Error('登录失败：' + (e && e.message ? e.message : '未知错误'));
+    err.status = -1;
+    throw err;
+  });
+}
+
+/* ---------- 看板读写 ---------- */
+function getCodeFromUrl(){
+  try{
+    var u = new URL(window.location.href);
+    return (u.searchParams.get('code') || '').toUpperCase();
+  }catch(e){ return ''; }
+}
+function newBoardDoc(title){
+  var s = AUTH.load();
+  return {
+    id: uid(12),
+    title: title || '我的任务看板',
+    share_code: uid(8).toUpperCase(),
+    owner_uid: (s && s.sub) || null,
+    column_defs: [
+      { id: 'todo',  title: '待办' },
+      { id: 'doing', title: '进行中' },
+      { id: 'done',  title: '已完成' }
+    ],
+    members: [
+      { id: 'm1', name: '徐', color: PALETTE[0] },
+      { id: 'm2', name: 'Codex', color: PALETTE[1] }
+    ],
+    tags: [
+      { id: 't1', name: '值守', color: PALETTE[0] },
+      { id: 't2', name: '缺陷', color: PALETTE[3] },
+      { id: 't3', name: '文档', color: PALETTE[5] }
+    ]
+  };
+}
+function seedCards(boardId){
+  var now = new Date().toISOString();
+  return [
+    { id: uid(12), board_id: boardId, column_id: 'todo', title: '给 /run 接口加令牌校验',
+      description: '目前 _handle_run 没有鉴权，任何能访问到端口的人都可以触发值守。', tag_ids: ['t2'], member_ids: ['m1'], due_date: null, position: 0 },
+    { id: uid(12), board_id: boardId, column_id: 'todo', title: '整理 1024 参赛截图',
+      description: '看板首屏 / 播报原文 / 判据实验室对比 / 回放时间轴，共 4 张。', tag_ids: ['t3'], member_ids: ['m1'], due_date: null, position: 1 },
+    { id: uid(12), board_id: boardId, column_id: 'doing', title: '复刻页面并接入云数据库',
+      description: '四个原标签保持原样，新增一个走 PostgreSQL 的任务看板。', tag_ids: ['t1'], member_ids: ['m1','m2'], due_date: null, position: 0 },
+    { id: uid(12), board_id: boardId, column_id: 'done', title: '修掉「有积分可领」误报',
+      description: '判据从按钮文案改为 today_checked_in 与 accept_status。', tag_ids: ['t2','t1'], member_ids: ['m1'], due_date: null, position: 0 }
+  ];
+}
+
+function loadCards(boardId){
+  return api('/bk_cards?select=*&board_id=eq.' + encodeURIComponent(boardId) +
+             '&order=column_id.asc,position.asc');
+}
+function fetchBoardByCode(code){
+  return api('/bk_boards?select=*&share_code=eq.' + encodeURIComponent(code)).then(function(rows){
+    return rows && rows[0] ? rows[0] : null;
+  });
+}
+
+/* ---------- 启动 ---------- */
+KB.boot = function(){
+  if(KB.loading) return;
+  KB.loading = true;
+  status('正在登录…');
+  paintIdentity();
+
+  AUTH.ensure().then(function(){
+    paintIdentity();
+    return loadWorkspace();
+  }, function(e){
+    paintIdentity();
+    throw new Error('身份登录失败：' + (e && e.message ? e.message : '未知错误'));
+  }).then(function(){
+    renderAll();
+    status('已同步 · ' + new Date().toLocaleTimeString('zh-CN', {hour12:false}));
+    startPoll();
+  }).catch(function(e){
+    KB.board = null;
+    renderError(e);
+    status('连接失败');
+  }).then(function(){
+    KB.loading = false;
+  });
+};
+
+/* 拉取逻辑：分享码 → 本机记录 → 新建 */
+function loadWorkspace(){
+  var code = getCodeFromUrl() || (localStorage.getItem('kb_last_code') || '');
+
+  var chain = code
+    ? fetchBoardByCode(code).then(function(b){
+        if(b) return b;
+        // 分享码失效：回到本机记录，或新建
+        var local = localStorage.getItem('kb_last_code');
+        if(local && local !== code) return fetchBoardByCode(local);
+        return null;
+      })
+    : Promise.resolve(null);
+
+  return chain.then(function(b){
+    if(b) return { board: b, created: false };
+    return createDefaultBoard();
+  }).then(function(res){
+    KB.board = res.board;
+    localStorage.setItem('kb_last_code', KB.board.share_code);
+    if(getCodeFromUrl() !== KB.board.share_code) setUrlCode(KB.board.share_code);
+    return loadCards(KB.board.id).then(function(cards){
+      KB.cards = cards || [];
+      if(res.created && KB.cards.length === 0){
+        return api('/bk_cards', { method:'POST', body: seedCards(KB.board.id), prefer:'return=minimal' })
+          .then(function(){ return loadCards(KB.board.id); })
+          .then(function(cs){ KB.cards = cs || []; });
+      }
+    });
+  });
+}
+
+function createDefaultBoard(){
+  var doc = newBoardDoc('我的任务看板');
+  return api('/bk_boards', { method:'POST', body: doc, prefer:'return=representation' })
+    .then(function(rows){
+      return { board: (rows && rows[0]) || doc, created: true };
+    });
+}
+function setUrlCode(code){
+  try{
+    var u = new URL(window.location.href);
+    u.searchParams.set('code', code);
+    history.replaceState(null, '', u.toString());
+  }catch(e){}
+}
+
+/* ---------- 渲染 ---------- */
+function renderError(e){
+  document.getElementById('boardTitle').value = '看板加载失败';
+  document.getElementById('shareCode').textContent = '—';
+  document.getElementById('kbBoard').innerHTML =
+    '<div class="kb-col" style="flex:1 0 100%;max-height:none">' +
+    '<div class="kb-empty" style="padding:28px">' +
+    '<strong style="color:var(--err);display:block;margin-bottom:8px">连不上云端数据库</strong>' +
+    '<span>' + esc(e && e.message ? e.message : '未知错误') + '</span>' +
+    '<div style="margin-top:14px"><button class="act" id="btnRetry">重试</button></div>' +
+    '</div></div>';
+  var r = document.getElementById('btnRetry');
+  if(r) r.onclick = function(){ KB.board = null; KB.boot(); };
+}
+function memberById(id){ return (KB.board.members||[]).filter(function(m){return m.id===id})[0]; }
+function tagById(id){ return (KB.board.tags||[]).filter(function(t){return t.id===id})[0]; }
+
+function avatarHtml(m, size){
+  var st = size ? ';width:'+size+'px;height:'+size+'px' : '';
+  return '<span class="avatar" title="' + esc(m.name) + '" style="background:' + esc(m.color) + st + '">' +
+         esc(String(m.name || '?').slice(0,1)) + '</span>';
+}
+function tagHtml(t){
+  return '<span class="pill" style="color:' + esc(t.color) + ';border-color:' + esc(t.color) +
+         '33;background:' + esc(t.color) + '14">' + esc(t.name) + '</span>';
+}
+
+function renderAll(){
+  if(!KB.board) return;
+  document.getElementById('boardTitle').value = KB.board.title;
+  document.getElementById('shareCode').textContent = KB.board.share_code;
+  applyPerm();
+  renderFilters();
+  renderBoard();
+}
+
+/* ---------- 权限：我能不能改这个看板 ---------- */
+function canEdit(){
+  var s = AUTH.load();
+  if(!KB.board || !s || !s.sub) return false;
+  return KB.board.owner_uid === s.sub;
+}
+/* 只读的原因有两种，文案要分开：别人的看板 / 官方示例看板（owner 为空） */
+function roHint(){
+  return (KB.board && !KB.board.owner_uid)
+    ? '只读：这是展示用的示例看板'
+    : '只读：这个看板属于另一个身份';
+}
+function paintIdentity(){
+  var box = document.getElementById('kbIdBox');
+  var txt = document.getElementById('kbIdText');
+  if(!box || !txt) return;
+  var s = AUTH.load();
+  if(!s || !s.sub){
+    box.classList.add('ro');
+    txt.textContent = AUTH.dead ? '未登录 · 只读' : '登录中…';
+    box.title = '点这里查看身份';
+    return;
+  }
+  box.classList.remove('ro');
+  txt.innerHTML = '身份 <b>' + esc(s.sub.slice(0, 6)) + '</b>';
+  box.title = '本机身份 ' + s.sub + '\n点这里查看 / 复制身份码 / 换设备登录';
+}
+function applyPerm(){
+  var ed = canEdit();
+  KB.canEdit = ed;
+  var pan = document.getElementById('kanban');
+  if(pan) pan.classList.toggle('kb-ro', !ed);
+
+  var t = document.getElementById('boardTitle');
+  if(t){
+    t.readOnly = !ed;
+    t.title = ed ? '改完自动保存' : roHint();
+  }
+  var lock = document.getElementById('kbLock');
+  if(lock){
+    if(!ed && KB.board){
+      lock.textContent = roHint();
+      lock.style.display = '';
+    }else{
+      lock.style.display = 'none';
+    }
+  }
+
+  ['btnAddColumn', 'btnAddMember', 'btnAddTag'].forEach(function(id){
+    var b = document.getElementById(id); if(b) b.style.display = ed ? '' : 'none';
+  });
+  paintIdentity();
+}
+
+function renderFilters(){
+  var fm = document.getElementById('fMember'), ft = document.getElementById('fTag');
+  var mv = fm.value, tv = ft.value;
+  fm.innerHTML = '<option value="">全部成员</option>' +
+    (KB.board.members||[]).map(function(m){ return '<option value="'+esc(m.id)+'">'+esc(m.name)+'</option>'; }).join('');
+  ft.innerHTML = '<option value="">全部标签</option>' +
+    (KB.board.tags||[]).map(function(t){ return '<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>'; }).join('');
+  fm.value = mv; ft.value = tv;
+}
+
+function matches(card){
+  var q = (document.getElementById('q').value || '').trim().toLowerCase();
+  var fm = document.getElementById('fMember').value;
+  var ft = document.getElementById('fTag').value;
+  if(q){
+    var hay = ((card.title||'') + ' ' + (card.description||'')).toLowerCase();
+    if(hay.indexOf(q) < 0) return false;
+  }
+  if(fm && (card.member_ids||[]).indexOf(fm) < 0) return false;
+  if(ft && (card.tag_ids||[]).indexOf(ft) < 0) return false;
+  return true;
+}
+
+function renderBoard(){
+  var board = KB.board;
+  var host = document.getElementById('kbBoard');
+  var cols = board.column_defs || [];
+  if(!cols.length){
+    host.innerHTML = '<div class="kb-col" style="flex:1 0 100%;max-height:none">' +
+      '<div class="kb-empty" style="padding:28px">这个看板还没有列表。点右上角「+ 添加列表」开始。</div></div>';
+    return;
+  }
+  host.innerHTML = cols.map(function(col){
+    var list = KB.cards.filter(function(c){ return c.column_id === col.id; })
+                       .sort(function(a,b){ return (a.position||0) - (b.position||0); });
+    var visible = list.filter(matches);
+    var body;
+    if(!list.length){
+      body = '<div class="kb-empty">还没有卡片<br><span style="font-size:11.5px">点下面「+ 添加卡片」</span></div>';
+    }else if(!visible.length){
+      body = '<div class="kb-empty">没有符合筛选条件的卡片</div>' +
+        list.map(function(c){ return cardHtml(c, true); }).join('');
+    }else{
+      body = list.map(function(c){ return cardHtml(c, !matches(c)); }).join('');
+    }
+    return '<div class="kb-col" data-col="' + esc(col.id) + '">' +
+      '<div class="kb-col-head">' +
+        '<span class="kb-col-name" title="双击重命名">' + esc(col.title) + '</span>' +
+        '<span class="kb-count">' + visible.length + '</span>' +
+        '<button class="kb-col-menu" data-colmenu="' + esc(col.id) + '" title="列表操作">⋯</button>' +
+      '</div>' +
+      '<div class="kb-cards" data-drop="' + esc(col.id) + '">' + body + '</div>' +
+      '<button class="kb-add-card" data-addcard="' + esc(col.id) + '">+ 添加卡片</button>' +
+    '</div>';
+  }).join('');
+  bindBoardEvents();
+}
+
+function cardHtml(c, hidden){
+  var tags = (c.tag_ids||[]).map(tagById).filter(Boolean);
+  var mem = (c.member_ids||[]).map(memberById).filter(Boolean);
+  var due = '';
+  if(c.due_date){
+    var soon = false;
+    try{
+      var d = new Date(c.due_date + 'T00:00:00');
+      soon = (d - Date.now()) < 3*86400000;
+    }catch(e){}
+    due = '<span class="kb-due' + (soon ? ' soon' : '') + '">' + esc(c.due_date) + '</span>';
+  }
+  return '<article class="kb-card' + (hidden ? ' hidden' : '') + '"' +
+    (KB.canEdit ? ' draggable="true"' : '') + ' data-card="' + esc(c.id) + '"' +
+    (hidden ? ' style="display:none"' : '') + '>' +
+    (tags.length ? '<div class="kb-card-tags">' + tags.map(tagHtml).join('') + '</div>' : '') +
+    '<div class="kb-card-title">' + esc(c.title) + '</div>' +
+    (c.description ? '<div class="kb-card-desc">' + esc(c.description) + '</div>' : '') +
+    '<div class="kb-card-foot">' +
+      (mem.length ? '<span class="avatars">' + mem.map(function(m){ return avatarHtml(m); }).join('') + '</span>' : '') +
+      '<span class="sp"></span>' + due +
+    '</div></article>';
+}
+
+/* ---------- 事件绑定 ---------- */
+function bindBoardEvents(){
+  document.querySelectorAll('.kb-card').forEach(function(el){
+    el.addEventListener('dragstart', onDragStart);
+    el.addEventListener('dragend', onDragEnd);
+    el.addEventListener('click', function(){
+      if(Date.now() - (KB.dragEndAt || 0) < 250) return;   // 拖拽结束的尾随 click 不算点击
+      openCard(el.dataset.card);
+    });
+  });
+  document.querySelectorAll('.kb-cards').forEach(function(el){
+    el.addEventListener('dragover', onDragOver);
+    el.addEventListener('dragleave', function(){ el.classList.remove('dragover'); });
+    el.addEventListener('drop', onDrop);
+  });
+  document.querySelectorAll('[data-addcard]').forEach(function(el){
+    el.onclick = function(){ addCard(el.dataset.addcard); };
+  });
+  document.querySelectorAll('[data-colmenu]').forEach(function(el){
+    el.onclick = function(ev){ ev.stopPropagation(); columnMenu(el.dataset.colmenu); };
+  });
+  document.querySelectorAll('.kb-col-name').forEach(function(el){
+    el.ondblclick = function(){
+      var colId = el.closest('.kb-col').dataset.col;
+      renameColumn(colId);
+    };
+  });
+}
+
+/* ---------- 拖拽 ---------- */
+var dragId = null;
+function onDragStart(e){
+  if(!KB.canEdit){ e.preventDefault(); return; }
+  dragId = this.dataset.card;
+  KB.dragging = true;
+  this.classList.add('dragging');
+  try{
+    e.dataTransfer.setData('text/plain', dragId);
+    e.dataTransfer.effectAllowed = 'move';
+  }catch(err){}
+}
+function onDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  var box = this;
+  box.classList.add('dragover');
+  var dragging = document.querySelector('.kb-card.dragging');
+  if(!dragging) return;
+  var after = null;
+  var cards = Array.prototype.slice.call(box.querySelectorAll('.kb-card:not(.dragging)'));
+  for(var i=0;i<cards.length;i++){
+    var r = cards[i].getBoundingClientRect();
+    if(e.clientY < r.top + r.height/2){ after = cards[i]; break; }
+  }
+  if(after) box.insertBefore(dragging, after);
+  else box.appendChild(dragging);
+}
+function onDrop(e){
+  e.preventDefault();
+  this.classList.remove('dragover');
+}
+function onDragEnd(){
+  this.classList.remove('dragging');
+  document.querySelectorAll('.kb-cards').forEach(function(x){ x.classList.remove('dragover'); });
+  KB.dragging = false;
+  KB.dragEndAt = Date.now();
+  persistOrder();
+}
+
+function persistOrder(){
+  if(!KB.canEdit){ renderBoard(); return; }
+  var jobs = [];
+  document.querySelectorAll('.kb-col').forEach(function(colEl){
+    var colId = colEl.dataset.col;
+    colEl.querySelectorAll('.kb-card').forEach(function(el, idx){
+      var card = KB.cards.filter(function(c){ return c.id === el.dataset.card; })[0];
+      if(!card) return;
+      if(card.column_id !== colId || card.position !== idx){
+        card.column_id = colId;
+        card.position = idx;
+        jobs.push(api('/bk_cards?id=eq.' + encodeURIComponent(card.id), {
+          method:'PATCH',
+          body:{ column_id: colId, position: idx, updated_at: new Date().toISOString() },
+          prefer:'return=minimal'
+        }));
+      }
+    });
+  });
+  if(!jobs.length){ renderBoard(); return; }
+  touch();
+  Promise.all(jobs).then(function(){
+    renderBoard();
+    status('排序已保存 · ' + new Date().toLocaleTimeString('zh-CN',{hour12:false}));
+  }).catch(function(e){
+    toast('排序保存失败：' + e.message, 'err');
+    KB.boot && reloadSilently();
+  });
+}
+function touch(){ KB.dirtyUntil = Date.now() + 4000; }
+
+/* ---------- 列操作 ---------- */
+function columnMenu(colId){
+  if(!KB.canEdit){ toast(roHint(), 'err'); return; }
+  var col = (KB.board.column_defs||[]).filter(function(c){return c.id===colId})[0];
+  if(!col) return;
+  showConfirm('列表「' + col.title + '」', '可以重命名，或删除这个列表（列表里的卡片会一起删掉）。',
+    '删除列表', function(){ removeColumn(colId); }, '重命名', function(){ renameColumn(colId); });
+}
+function renameColumn(colId){
+  var col = (KB.board.column_defs||[]).filter(function(c){return c.id===colId})[0];
+  if(!col) return;
+  askText('重命名列表', '列表名称', col.title, function(v){
+    if(!v) return;
+    col.title = v;
+    saveBoard({ column_defs: KB.board.column_defs }).then(renderAll).catch(fail('重命名失败'));
+  });
+}
+function addColumn(){
+  if(!KB.canEdit){ toast(roHint(), 'err'); return; }
+  askText('添加列表', '列表名称', '', function(v){
+    if(!v) return;
+    KB.board.column_defs = (KB.board.column_defs||[]).concat([{ id: uid(8), title: v }]);
+    saveBoard({ column_defs: KB.board.column_defs }).then(function(){ renderAll(); toast('已添加列表','ok'); })
+      .catch(fail('添加列表失败'));
+  });
+}
+function removeColumn(colId){
+  var ids = KB.cards.filter(function(c){ return c.column_id === colId; }).map(function(c){ return c.id; });
+  KB.board.column_defs = (KB.board.column_defs||[]).filter(function(c){ return c.id !== colId; });
+  var p = saveBoard({ column_defs: KB.board.column_defs });
+  if(ids.length){
+    p = p.then(function(){
+      return api('/bk_cards?column_id=eq.' + encodeURIComponent(colId) + '&board_id=eq.' + encodeURIComponent(KB.board.id),
+                 { method:'DELETE', prefer:'return=minimal' });
+    });
+  }
+  p.then(function(){
+    KB.cards = KB.cards.filter(function(c){ return c.column_id !== colId; });
+    renderAll(); toast('列表已删除', 'ok');
+  }).catch(fail('删除列表失败'));
+}
+
+/* ---------- 卡片操作 ---------- */
+function addCard(colId){
+  var first = (KB.board.column_defs||[])[0];
+  openCard(null, colId || (first && first.id));
+}
+function openCard(cardId, presetCol){
+  var modal = document.getElementById('cardMask');
+  var card = cardId ? KB.cards.filter(function(c){ return c.id === cardId; })[0] : null;
+  if(!card && !KB.canEdit){ toast(roHint(), 'err'); return; }
+  KB.editing = card ? JSON.parse(JSON.stringify(card)) : {
+    id: null, column_id: presetCol, title: '', description: '',
+    tag_ids: [], member_ids: [], due_date: null, position: 999
+  };
+  var ro = !KB.canEdit;
+  document.getElementById('cardModalTitle').textContent =
+    card ? (ro ? '查看卡片（只读）' : '编辑卡片') : '新建卡片';
+  document.getElementById('cTitle').value = KB.editing.title || '';
+  document.getElementById('cDesc').value = KB.editing.description || '';
+  document.getElementById('cDue').value = KB.editing.due_date || '';
+  ['cTitle','cDesc','cDue'].forEach(function(id){
+    document.getElementById(id).readOnly = ro;
+  });
+  document.getElementById('btnDelCard').style.display = (card && !ro) ? '' : 'none';
+  document.getElementById('btnSaveCard').style.display = ro ? 'none' : '';
+  renderChips();
+  modal.classList.add('on');
+  setTimeout(function(){ if(!ro) document.getElementById('cTitle').focus(); }, 60);
+}
+function renderChips(){
+  var e = KB.editing;
+  var ro = !KB.canEdit;
+  document.getElementById('cTags').innerHTML = (KB.board.tags||[]).map(function(t){
+    var on = (e.tag_ids||[]).indexOf(t.id) >= 0;
+    return '<button class="chip' + (on?' on':'') + '"' + (ro?' disabled':'') + ' data-picktag="' + esc(t.id) + '">' +
+      '<span style="width:8px;height:8px;border-radius:50%;background:' + esc(t.color) + '"></span>' +
+      esc(t.name) + '</button>';
+  }).join('') || '<span class="hint" style="margin:0">还没有标签，先在工具栏点「+ 标签」</span>';
+  document.getElementById('cMembers').innerHTML = (KB.board.members||[]).map(function(m){
+    var on = (e.member_ids||[]).indexOf(m.id) >= 0;
+    return '<button class="chip' + (on?' on':'') + '"' + (ro?' disabled':'') + ' data-pickmem="' + esc(m.id) + '">' + avatarHtml(m, 16) +
+      esc(m.name) + '</button>';
+  }).join('') || '<span class="hint" style="margin:0">还没有成员，先在工具栏点「+ 成员」</span>';
+
+  if(ro) return;
+
+  document.querySelectorAll('[data-picktag]').forEach(function(b){
+    b.onclick = function(){
+      var id = b.dataset.picktag;
+      var arr = KB.editing.tag_ids = KB.editing.tag_ids || [];
+      var i = arr.indexOf(id);
+      if(i >= 0) arr.splice(i,1); else arr.push(id);
+      renderChips();
+    };
+  });
+  document.querySelectorAll('[data-pickmem]').forEach(function(b){
+    b.onclick = function(){
+      var id = b.dataset.pickmem;
+      var arr = KB.editing.member_ids = KB.editing.member_ids || [];
+      var i = arr.indexOf(id);
+      if(i >= 0) arr.splice(i,1); else arr.push(id);
+      renderChips();
+    };
+  });
+}
+function saveCard(){
+  if(!KB.canEdit){ toast(roHint(), 'err'); return; }
+  var e = KB.editing;
+  var title = document.getElementById('cTitle').value.trim();
+  if(!title){ toast('标题不能为空', 'err'); document.getElementById('cTitle').focus(); return; }
+  var payload = {
+    title: title,
+    description: document.getElementById('cDesc').value.trim(),
+    tag_ids: e.tag_ids || [],
+    member_ids: e.member_ids || [],
+    due_date: document.getElementById('cDue').value || null,
+    updated_at: new Date().toISOString()
+  };
+  var btn = document.getElementById('btnSaveCard');
+  btn.disabled = true; btn.textContent = '保存中…';
+  var req;
+  if(e.id){
+    req = api('/bk_cards?id=eq.' + encodeURIComponent(e.id), { method:'PATCH', body: payload, prefer:'return=representation' });
+  }else{
+    payload.id = uid(12);
+    payload.board_id = KB.board.id;
+    payload.column_id = e.column_id || ((KB.board.column_defs||[])[0] || {}).id;
+    payload.position = KB.cards.filter(function(c){ return c.column_id === payload.column_id; }).length;
+    req = api('/bk_cards', { method:'POST', body: payload, prefer:'return=representation' });
+  }
+  req.then(function(rows){
+    var saved = rows && rows[0];
+    if(!saved) throw new Error('没有权限：这个看板属于另一个身份');
+    if(e.id){
+      KB.cards = KB.cards.map(function(c){ return c.id === e.id ? saved : c; });
+    }else{
+      KB.cards = KB.cards.concat([saved]);
+    }
+    touch();
+    closeMask('cardMask');
+    renderAll();
+    status('已保存 · ' + new Date().toLocaleTimeString('zh-CN',{hour12:false}));
+    toast(e.id ? '卡片已更新' : '卡片已创建', 'ok');
+  }).catch(function(err){
+    toast('保存失败：' + err.message, 'err');
+  }).then(function(){
+    btn.disabled = false; btn.textContent = '保存';
+  });
+}
+function deleteCard(){
+  if(!KB.canEdit){ toast(roHint(), 'err'); return; }
+  var e = KB.editing;
+  if(!e || !e.id) return;
+  showConfirm('删除卡片', '「' + e.title + '」将被永久删除，无法恢复。', '确认删除', function(){
+    api('/bk_cards?id=eq.' + encodeURIComponent(e.id), { method:'DELETE', prefer:'return=minimal' })
+      .then(function(){
+        KB.cards = KB.cards.filter(function(c){ return c.id !== e.id; });
+        closeMask('cardMask');
+        renderAll();
+        toast('卡片已删除', 'ok');
+      }).catch(fail('删除失败'));
+  });
+}
+
+/* ---------- 成员与标签 ---------- */
+function addMember(){
+  if(!KB.canEdit){ toast(roHint(), 'err'); return; }
+  askText('添加成员', '成员名称', '', function(v){
+    if(!v) return;
+    var m = { id: uid(6), name: v, color: PALETTE[(KB.board.members||[]).length % PALETTE.length] };
+    KB.board.members = (KB.board.members||[]).concat([m]);
+    saveBoard({ members: KB.board.members }).then(function(){ renderAll(); toast('成员已添加','ok'); })
+      .catch(fail('添加成员失败'));
+  }, true);
+}
+function addTag(){
+  if(!KB.canEdit){ toast(roHint(), 'err'); return; }
+  askText('添加标签', '标签名称', '', function(v, color){
+    if(!v) return;
+    var t = { id: uid(6), name: v, color: color || PALETTE[0] };
+    KB.board.tags = (KB.board.tags||[]).concat([t]);
+    saveBoard({ tags: KB.board.tags }).then(function(){ renderAll(); toast('标签已添加','ok'); })
+      .catch(fail('添加标签失败'));
+  }, true);
+}
+
+/* ---------- 看板级保存 ---------- */
+function saveBoard(patch){
+  if(!KB.canEdit){
+    toast(roHint(), 'err');
+    return Promise.reject(new Error('只读看板'));
+  }
+  patch.updated_at = new Date().toISOString();
+  touch();
+  return api('/bk_boards?id=eq.' + encodeURIComponent(KB.board.id), {
+    method:'PATCH', body: patch, prefer:'return=representation'
+  }).then(function(rows){
+    // 越权时 PostgREST 返回 200 + 空数组，这里必须当成失败
+    if(!rows || !rows.length) throw new Error('没有权限：这个看板属于另一个身份');
+    return rows;
+  });
+}
+function fail(prefix){
+  return function(e){ toast(prefix + '：' + (e && e.message || '未知错误'), 'err'); reloadSilently(); };
+}
+function reloadSilently(){
+  if(KB.dragging) return;
+  loadCards(KB.board.id).then(function(cards){
+    KB.cards = cards || [];
+    renderAll();
+  }).catch(function(){});
+}
+
+/* ---------- 弹窗 ---------- */
+function closeMask(id){ document.getElementById(id).classList.remove('on'); }
+document.querySelectorAll('[data-close]').forEach(function(b){
+  b.onclick = function(){ closeMask(b.dataset.close); };
+});
+document.querySelectorAll('.mask').forEach(function(m){
+  m.addEventListener('mousedown', function(e){ if(e.target === m) m.classList.remove('on'); });
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    document.querySelectorAll('.mask.on').forEach(function(m){ m.classList.remove('on'); });
+  }
+});
+
+var promptCb = null, promptColor = null;
+function askText(title, label, val, cb, withColor){
+  document.getElementById('promptTitle').textContent = title;
+  document.getElementById('promptLabel').textContent = label;
+  var input = document.getElementById('promptInput');
+  input.value = val || '';
+  promptCb = cb;
+  var wrap = document.getElementById('promptColorWrap');
+  if(withColor){
+    wrap.style.display = '';
+    promptColor = PALETTE[(Math.random()*PALETTE.length)|0];
+    var host = document.getElementById('promptColors');
+    host.innerHTML = PALETTE.map(function(c){
+      return '<button class="chip" data-color="' + c + '" style="padding:4px 8px">' +
+        '<span style="width:12px;height:12px;border-radius:50%;background:' + c + '"></span></button>';
+    }).join('');
+    host.querySelectorAll('[data-color]').forEach(function(b){
+      b.onclick = function(){
+        promptColor = b.dataset.color;
+        host.querySelectorAll('[data-color]').forEach(function(x){ x.classList.remove('on'); });
+        b.classList.add('on');
+      };
+    });
+    host.querySelector('[data-color="' + promptColor + '"]').classList.add('on');
+  }else{
+    wrap.style.display = 'none';
+  }
+  document.getElementById('promptMask').classList.add('on');
+  setTimeout(function(){ input.focus(); input.select(); }, 60);
+}
+document.getElementById('promptOk').onclick = function(){
+  var v = document.getElementById('promptInput').value.trim();
+  closeMask('promptMask');
+  if(promptCb) promptCb(v, promptColor);
+};
+document.getElementById('promptInput').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') document.getElementById('promptOk').click();
+});
+
+var confirmCb = null, renameCb = null;
+function showConfirm(title, text, okText, cb, altText, altCb){
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmText').textContent = text;
+  document.getElementById('confirmOk').textContent = okText || '确认';
+  confirmCb = cb;
+  renameCb = altCb || null;
+  var foot = document.querySelector('#confirmMask .modal-foot');
+  var old = document.getElementById('confirmAlt');
+  if(old) old.remove();
+  if(altText){
+    var b = document.createElement('button');
+    b.className = 'act'; b.id = 'confirmAlt'; b.textContent = altText;
+    b.onclick = function(){ closeMask('confirmMask'); if(renameCb) renameCb(); };
+    foot.insertBefore(b, document.getElementById('confirmOk'));
+  }
+  document.getElementById('confirmMask').classList.add('on');
+}
+document.getElementById('confirmOk').onclick = function(){
+  closeMask('confirmMask');
+  if(confirmCb) confirmCb();
+};
+
+/* ---------- 工具栏 ---------- */
+document.getElementById('btnAddColumn').onclick = addColumn;
+document.getElementById('btnAddMember').onclick = addMember;
+document.getElementById('btnAddTag').onclick = addTag;
+document.getElementById('btnSaveCard').onclick = saveCard;
+document.getElementById('btnDelCard').onclick = deleteCard;
+document.getElementById('q').addEventListener('input', function(){ renderBoard(); });
+document.getElementById('fMember').addEventListener('change', function(){ renderBoard(); });
+document.getElementById('fTag').addEventListener('change', function(){ renderBoard(); });
+document.getElementById('btnReload').onclick = function(){
+  if(!KB.board){ KB.boot(); return; }
+  status('正在刷新…');
+  loadCards(KB.board.id).then(function(cards){
+    KB.cards = cards || [];
+    renderAll();
+    status('已同步 · ' + new Date().toLocaleTimeString('zh-CN',{hour12:false}));
+    toast('已刷新', 'ok');
+  }).catch(fail('刷新失败'));
+};
+document.getElementById('btnNewBoard').onclick = function(){
+  showConfirm('新建看板', '会创建一个空白看板并切换过去，当前看板的数据仍保留在云端，可用它的分享码再打开。', '新建', function(){
+    var doc = newBoardDoc('未命名看板');
+    api('/bk_boards', { method:'POST', body: doc, prefer:'return=representation' })
+      .then(function(rows){
+        var b = (rows && rows[0]) || doc;
+        KB.board = b; KB.cards = [];
+        localStorage.setItem('kb_last_code', b.share_code);
+        setUrlCode(b.share_code);
+      }).then(function(){
+        renderAll();
+        toast('已新建看板', 'ok');
+      }).catch(fail('新建失败'));
+  });
+};
+document.getElementById('btnShare').onclick = function(){
+  if(!KB.board) return;
+  var u = location.origin + location.pathname + '?code=' + KB.board.share_code;
+  var done = function(){ toast('分享链接已复制', 'ok'); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(u).then(done, function(){ fallbackCopy(u); done(); });
+  }else{ fallbackCopy(u); done(); }
+};
+function fallbackCopy(text){
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta);
+}
+document.getElementById('boardTitle').addEventListener('change', function(){
+  if(!KB.canEdit){
+    this.value = KB.board ? KB.board.title : '';
+    toast(roHint(), 'err');
+    return;
+  }
+  var v = this.value.trim() || '未命名看板';
+  this.value = v;
+  KB.board.title = v;
+  saveBoard({ title: v }).then(function(){ toast('标题已保存', 'ok'); })
+    .catch(function(e){ toast('标题保存失败：' + e.message, 'err'); });
+});
+
+/* ---------- 身份弹窗 ---------- */
+function openIdentity(){
+  var s = AUTH.load();
+  document.getElementById('idMsg').textContent = '';
+  document.getElementById('idCode').value = AUTH.deviceId();
+  document.getElementById('idIntro').innerHTML = (s && s.sub)
+    ? '这个浏览器当前持有身份 <code>' + esc(s.sub) + '</code>。<br>' +
+      '看板的<strong>写权限绑定在这个身份上</strong>：只有它自己建的看板它能改；' +
+      '别人打开你的分享码只能看。'
+    : '还没有拿到身份 —— 刷新页面会重新尝试登录。';
+  document.getElementById('idMask').classList.add('on');
+}
+document.getElementById('kbIdBox').onclick = openIdentity;
+document.getElementById('kbIdBox').addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openIdentity(); }
+});
+document.getElementById('btnIdCopy').onclick = function(){
+  var v = AUTH.deviceId();
+  var done = function(){
+    document.getElementById('idMsg').textContent = '身份码已复制，粘到另一台设备就能接管自己的看板。';
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(v).then(done, function(){ fallbackCopy(v); done(); });
+  }else{ fallbackCopy(v); done(); }
+};
+document.getElementById('btnIdReset').onclick = function(){
+  closeMask('idMask');
+  showConfirm('重置身份', '会丢掉这个浏览器的身份，并换一个新的。之前用它建的看板将变成只读 —— ' +
+    '除非你先复制了身份码。确定重置？', '确认重置', function(){
+    AUTH.reset().then(function(){
+      // 刻意保留地址栏里的 ?code= —— 重置后应该还看得见刚才那块看板，只是变成只读，
+      // 这样上面的提示「之前用它建的看板将变成只读」才是真的。想另起一块点「新建看板」。
+      KB.board = null; KB.cards = []; KB.loading = false;
+      KB.boot();
+      toast('已换成新身份，原来的看板现在只读', 'ok');
+    }).catch(function(e){ toast('重置失败：' + e.message, 'err'); });
+  });
+};
+document.getElementById('btnIdUse').onclick = function(){
+  var v = document.getElementById('idCode').value.trim();
+  if(!v || v.length < 8){ toast('身份码看起来不对', 'err'); return; }
+  if(v === AUTH.deviceId()){ toast('这就是当前身份码', 'ok'); return; }
+  closeMask('idMask');
+  AUTH.adopt(v).then(function(){
+    KB.board = null; KB.cards = []; KB.loading = false;
+    KB.boot();
+    toast('已切换到这段身份码对应的身份', 'ok');
+  }).catch(function(e){ toast('切换失败：' + e.message, 'err'); });
+};
+
+/* ---------- 轮询：多端同步 ---------- */
+function startPoll(){
+  if(KB.pollTimer) clearInterval(KB.pollTimer);
+  KB.pollTimer = setInterval(function(){
+    if(!KB.board || document.hidden || KB.dragging) return;
+    if(document.querySelector('.mask.on')) return;
+    if(Date.now() < KB.dirtyUntil) return;
+    loadCards(KB.board.id).then(function(cards){
+      var a = JSON.stringify(cards||[]), b = JSON.stringify(KB.cards||[]);
+      if(a !== b){ KB.cards = cards || []; renderBoard(); status('已同步到最新 · ' + new Date().toLocaleTimeString('zh-CN',{hour12:false})); }
+    }).catch(function(){});
+  }, 20000);
+}
+
+/* 首次进入看板标签时再拉起数据；带 ?code= 的分享链接直接落到看板标签 */
+(function(){
+  var hasCode = false;
+  try{ hasCode = !!(new URL(window.location.href).searchParams.get('code')); }catch(e){}
+  if(hasCode){
+    var btn = document.querySelector('nav button[data-tab="kanban"]');
+    if(btn){ btn.click(); return; }
+  }
+  if(document.body.dataset.tab === 'kanban'){ KB.boot(); }
+})();
 </script>
 </body>
 </html>

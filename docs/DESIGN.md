@@ -63,7 +63,7 @@ WorkBuddy 每日签到全勤值守 把 WorkBuddy 客户端里「每天点几下�
 | `lib/web_auth.py` | 用长效令牌换网站会话 cookie | 长效令牌 + 客户端 UA | 不管业务 |
 | `src/wecom_echo_server.py` | HTTP 服务：托管看板、`/status`、`/run`、`/notify`、企微回调 | 无（标准库） | 不跑业务逻辑，只派生 `daily_runner` |
 | `app/index.html` | 看板前端，同源 fetch | `/status` `/run` | 不做鉴权 |
-| `site/index.html` | 对外发布页（纯静态） | 无 | 不连后端 |
+| `site/index.html` | 对外发布页（5 标签，第 5 个「任务看板」走云数据库） | CloudBase 认证 + PostgREST | 不碰值守服务的 `/run` |
 | `scripts/deploy.py` | 上传代码、建目录、校验、重启服务 | SSH | 不构建 |
 | `scripts/bind_domain.py` | 可选：绑自定义域名 + HTTPS，失败回滚 | SSH + nginx | 不是必需路径 |
 | `skill/SKILL.md` | 技能定义，让 WorkBuddy 能问能查 | — | 不含逻辑 |

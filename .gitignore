@@ -27,3 +27,7 @@ Thumbs.db
 # 本地临时脚本
 _*.py
 dist/
+
+# 桌面看板复刻：发布密钥单独存放，不入库（内容等同页面里的 CFG.key，可随时复原）
+site/.key.txt
+site/tests/__pycache__/
